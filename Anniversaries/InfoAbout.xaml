@@ -1,0 +1,30 @@
+﻿<Page
+    x:Class="Anniversaries.InfoAbout"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Anniversaries"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Loaded="uiInfoLoaded">
+        <StackPanel Grid.Column="0" VerticalAlignment="Center" >
+            <TextBlock x:Uid="infoLine1" HorizontalAlignment="Left" Margin="10,10,10,10" TextWrapping="Wrap" Text='  This simple app merges information from "today" Wikipedia pages for some languages. In this way you get two benefits:' VerticalAlignment="Top"/>
+            <TextBlock x:Uid="infoLine2" HorizontalAlignment="Left" Margin="10,10,10,10" TextWrapping="Wrap" Text='  1) many more entries that in any single language;' VerticalAlignment="Top"/>
+            <TextBlock x:Uid="infoLine3" HorizontalAlignment="Left" Margin="10,10,10,10" TextWrapping="Wrap" Text='  2) you can see which events are important for which language group;' VerticalAlignment="Top"/>
+            <TextBlock x:Uid="infoLine4" HorizontalAlignment="Left" Margin="10,10,10,10" TextWrapping="Wrap" Text='' VerticalAlignment="Top"/>
+            <TextBlock x:Uid="infoLine5" HorizontalAlignment="Left" Margin="10,10,10,10" TextWrapping="Wrap" Text=' So, all information is taken from Wikipedia.' VerticalAlignment="Top"/>
+            <TextBlock x:Uid="infoLine5a" HorizontalAlignment="Left" Margin="10,10,10,10" TextWrapping="Wrap" Text=' By default, all links are blocked.' VerticalAlignment="Top"/>
+            <TextBlock x:Uid="infoLine6" HorizontalAlignment="Left" Margin="10,10,10,0" TextWrapping="Wrap" Text=' English page for today is: ' VerticalAlignment="Top"/>
+            <HyperlinkButton x:Name="uiWikiLink" Content="https://en.wikipedia.org/wiki/September_11" HorizontalAlignment="Left" Margin="10,0,10,10" VerticalAlignment="Top"/>
+        </StackPanel>
+    </Grid>
+    <Page.BottomAppBar>
+        <CommandBar>
+            <AppBarButton Icon="Accept" Label="Ok" Click="bInfoOk"/>
+            <AppBarSeparator/>
+            <AppBarButton x:Uid="resAboutRate" Icon="OutlineStar" Label="Rate" Click="bRateIt_Click"  />
+        </CommandBar>
+
+    </Page.BottomAppBar>
+
+</Page>

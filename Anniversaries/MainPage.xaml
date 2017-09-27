@@ -1,0 +1,41 @@
+﻿<Page
+    x:Class="Anniversaries.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Anniversaries"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d" Loaded="MainPage_Loaded">
+    
+    <Grid Name="layoutRoot" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="9*"/>
+            <RowDefinition Height="1*"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock x:Uid="mpHeader" HorizontalAlignment="Center" Margin="0,10,0,10" Text="Anniversaries - today in history" VerticalAlignment="Center" FontSize="24"/>
+        <Grid Name="naView" Grid.Row="1" >
+            <WebView x:Name="wbViewer" HorizontalAlignment="Left" Margin="10,10,10,10" Height="Auto" Width="Auto" VerticalAlignment="Top"/>
+        </Grid>
+    </Grid>
+    <Page.BottomAppBar>
+        <CommandBar>
+            <CommandBar.Content>
+                <TextBlock x:Name="tbDzien" Text=" " Margin="20,10,0,10" />
+            </CommandBar.Content>
+            <AppBarSeparator/>
+            <AppBarButton x:Uid="bRefresh" Icon="Refresh" Label="Wczytaj" Click="bRead_Click"/>
+            <AppBarSeparator/>
+            <AppBarToggleButton x:Uid="bEvent" x:Name="bEvent" Icon="Globe" Label="Wydarzenia" Click="bEvent_Click" />
+            <AppBarToggleButton x:Uid="bHolid" x:Name="bHolid" Icon="OutlineStar" Label="Swieta" Click="bHolid_Click"/>
+            <AppBarToggleButton x:Uid="bBirth" x:Name="bBirth" Icon="AddFriend" Label="Urodziny" Click="bBirth_Click"/>
+            <AppBarToggleButton x:Uid="bDeath" x:Name="bDeath" Icon="BlockContact" Label="Smierci" Click="bDeath_Click"/>
+            <AppBarSeparator/>
+            <AppBarButton x:Uid="bSettings" Icon="Setting" Label="Settings" Click="bSetup_Click" />
+            <AppBarButton x:Uid="bHelp" Icon="Help" Label="Info" Click="bInfo_Click" />
+        </CommandBar>
+
+    </Page.BottomAppBar>
+
+</Page>
