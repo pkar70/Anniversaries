@@ -26,6 +26,13 @@
             </CommandBar.Content>
             <AppBarSeparator/>
             <AppBarButton x:Uid="bRefresh" Icon="Refresh" Label="Wczytaj" Click="bRead_Click"/>
+            <AppBarButton x:Uid="resDay" Icon="Calendar" Label="Kalendarz" >
+                <AppBarButton.Flyout>
+                    <Flyout >
+                        <CalendarDatePicker x:Name="uiDay" />
+                    </Flyout>
+                </AppBarButton.Flyout>
+            </AppBarButton>
             <AppBarSeparator/>
             <AppBarToggleButton x:Uid="bEvent" x:Name="bEvent" Icon="Globe" Label="Wydarzenia" Click="bEvent_Click" />
             <AppBarToggleButton x:Uid="bHolid" x:Name="bHolid" Icon="OutlineStar" Label="Swieta" Click="bHolid_Click"/>

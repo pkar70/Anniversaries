@@ -2,7 +2,6 @@
 
 Imports Windows.Data.Xml.Dom
 Imports System.Windows
-Imports Windows.Storage
 
 ''' <summary>
 ''' An empty page that can be used on its own or navigated to within a Frame.
@@ -16,7 +15,7 @@ Public NotInheritable Class MainPage
     Dim mDeaths As String = ""
     Dim mObceMiesiace As String = ""
     ' zmienne w Setup dostepne
-    Dim mDate As Date
+    Dim mDate As DateTimeOffset
     'Dim mObceJezyki As String = "pl de fr es ru"
     Dim mPreferredLang As String = "pl"
     Dim mCurrLang As String = ""
@@ -355,7 +354,7 @@ Public NotInheritable Class MainPage
         mCurrLang = sUrl
 
         Dim sTabs As String
-        sTabs = ApplicationData.Current.LocalSettings.Values("EnabledTabs").ToString
+        sTabs = App.GetSettingsString("EnabledTabs", "EBD")
 
         Select Case sUrl
             Case "en"
@@ -365,23 +364,23 @@ Public NotInheritable Class MainPage
                 If sTabs.IndexOf("H") > -1 Then mHolid = mHolid & WyciagnijDane(sTxt, "observances"">Holidays")
             Case "pl"
                 If sTabs.IndexOf("E") > -1 Then
-                    mEvents = MergeSorted(mEvents, WytnijObrazkiFR(WyciagnijDane(sTxt, "e"">Wydarzenia w Polsce<")))
-                    mEvents = MergeSorted(mEvents, WytnijObrazkiFR(WyciagnijDane(sTxt, "e"">Wydarzenia na świecie")))
+                    mEvents = MergeSorted(mEvents, WytnijObrazkiFR(WyciagnijDane(sTxt, "id=""Wydarzenia_w_Pols")))
+                    mEvents = MergeSorted(mEvents, WytnijObrazkiFR(WyciagnijDane(sTxt, "id=""Wydarzenia_na_świ")))
                 End If
-                If sTabs.IndexOf("B") > -1 Then mBirths = MergeSorted(mBirths, WyciagnijDane(sTxt, "9"">Urodzili się<"))
-                If sTabs.IndexOf("D") > -1 Then mDeaths = MergeSorted(mDeaths, WyciagnijDane(sTxt, "li"">Zmarli<"))
-                If sTabs.IndexOf("H") > -1 Then mHolid = mHolid & WyciagnijDane(sTxt, "ta"">Święta")
+                If sTabs.IndexOf("B") > -1 Then mBirths = MergeSorted(mBirths, WyciagnijDane(sTxt, "id=""Urodzili_się"))
+                If sTabs.IndexOf("D") > -1 Then mDeaths = MergeSorted(mDeaths, WyciagnijDane(sTxt, "id=""Zmarli"))
+                If sTabs.IndexOf("H") > -1 Then mHolid = mHolid & WyciagnijDane(sTxt, "id=""Święta")
             Case "de"
-                If sTabs.IndexOf("E") > -1 Then mEvents = MergeSorted(mEvents, PrepareAndSplitSort(WyciagnijDane(sTxt, "sse"">Ereignisse")))
-                If sTabs.IndexOf("B") > -1 Then mBirths = MergeSorted(mBirths, WytnijObrazkiDE(WyciagnijDane(sTxt, "en"">Geboren")))
-                If sTabs.IndexOf("D") > -1 Then mDeaths = MergeSorted(mDeaths, WytnijObrazkiDE(WyciagnijDane(sTxt, "en"">Gestorben")))
-                If sTabs.IndexOf("H") > -1 Then mHolid = mHolid & WyciagnijDane(sTxt, "ge"">Feier- und Gedenktage")
+                If sTabs.IndexOf("E") > -1 Then mEvents = MergeSorted(mEvents, PrepareAndSplitSort(WyciagnijDane(sTxt, "id=""Ereignisse")))
+                If sTabs.IndexOf("B") > -1 Then mBirths = MergeSorted(mBirths, WytnijObrazkiDE(WyciagnijDane(sTxt, "id=""Geboren")))
+                If sTabs.IndexOf("D") > -1 Then mDeaths = MergeSorted(mDeaths, WytnijObrazkiDE(WyciagnijDane(sTxt, "id=""Gestorben")))
+                If sTabs.IndexOf("H") > -1 Then mHolid = mHolid & WyciagnijDane(sTxt, "id=""Feier")
             Case "fr"
                 If sTabs.IndexOf("E") > -1 Then
-                    mEvents = MergeSorted(mEvents, WytnijObrazkiFR(WyciagnijDane(sTxt, "ts"">Évènements")))
-                    mEvents = MergeSorted(mEvents, WytnijObrazkiFR(WyciagnijDane(sTxt, "religion"">Arts, culture")))
-                    mEvents = MergeSorted(mEvents, WytnijObrazkiFR(WyciagnijDane(sTxt, "ues"">Sciences et")))
-                    mEvents = MergeSorted(mEvents, WytnijObrazkiFR(WyciagnijDane(sTxt, "A9"">Économie")))
+                    mEvents = MergeSorted(mEvents, WytnijObrazkiFR(WyciagnijDane(sTxt, "id=""Évènements")))
+                    mEvents = MergeSorted(mEvents, WytnijObrazkiFR(WyciagnijDane(sTxt, "id=""Art,_culture")))
+                    mEvents = MergeSorted(mEvents, WytnijObrazkiFR(WyciagnijDane(sTxt, "id=""Sciences_et")))
+                    mEvents = MergeSorted(mEvents, WytnijObrazkiFR(WyciagnijDane(sTxt, "id=""Économie")))
                 End If
                 If sTabs.IndexOf("B") > -1 Then mBirths = MergeSorted(mBirths, WytnijObrazkiFR(WyciagnijDane(sTxt, "es"">Naissances")))
                 If sTabs.IndexOf("D") > -1 Then mDeaths = MergeSorted(mDeaths, WytnijObrazkiFR(WyciagnijDane(sTxt, "s"">Décès")))
@@ -392,10 +391,10 @@ Public NotInheritable Class MainPage
                 If sTabs.IndexOf("D") > -1 Then mDeaths = MergeSorted(mDeaths, WytnijObrazkiDE(WyciagnijDane(sTxt, "s"">Fallecimientos")))
                 If sTabs.IndexOf("H") > -1 Then mHolid = mHolid & WyciagnijDane(sTxt, "s"">Celebraciones")
             Case "ru"
-                If sTabs.IndexOf("E") > -1 Then mEvents = MergeSorted(mEvents, WytnijObrazkiFR(WyciagnijDane(sTxt, "8F"">События")))
-                If sTabs.IndexOf("B") > -1 Then mBirths = MergeSorted(mBirths, WytnijObrazkiDE(WyciagnijDane(sTxt, "8C"">Родились")))
-                If sTabs.IndexOf("D") > -1 Then mDeaths = MergeSorted(mDeaths, WytnijObrazkiDE(WyciagnijDane(sTxt, "8C"">Скончались")))
-                If sTabs.IndexOf("H") > -1 Then mHolid = mHolid & WyciagnijDane(sTxt, "B8"">Праздники")
+                If sTabs.IndexOf("E") > -1 Then mEvents = MergeSorted(mEvents, WytnijObrazkiFR(WyciagnijDane(sTxt, "id=""События")))
+                If sTabs.IndexOf("B") > -1 Then mBirths = MergeSorted(mBirths, WytnijObrazkiFR(WyciagnijDane(sTxt, "id=""Родились")))
+                If sTabs.IndexOf("D") > -1 Then mDeaths = MergeSorted(mDeaths, WytnijObrazkiFR(WyciagnijDane(sTxt, "id=""Скончались")))
+                If sTabs.IndexOf("H") > -1 Then mHolid = mHolid & WyciagnijDane(sTxt, "id=""Праздники")
             Case Else
                 mEvents = mEvents & "<h2>Unsupported lang: " & sUrl & "</h2>"
                 mBirths = mBirths & "<h2>Unsupported lang: " & sUrl & "</h2>"
@@ -449,7 +448,6 @@ Public NotInheritable Class MainPage
     End Function
 
     Private Async Sub bRead_Click(sender As Object, e As RoutedEventArgs)
-        mDate = Date.Now
         Dim sUrl As String = ""
 
         sUrl = "https://en.wikipedia.org/wiki/" & MonthNo2EnName(mDate.Month) & "_" & mDate.Day.ToString
@@ -460,7 +458,7 @@ Public NotInheritable Class MainPage
         tbDzien.Text = "Reading EN..."
         Dim sTxt As String = Await ReadOneLang(sUrl, mPreferredLang)
 
-        sUrl = ApplicationData.Current.LocalSettings.Values("EnabledLanguages").ToString
+        sUrl = App.GetSettingsString("EnabledLanguages", "pl de fr es ru")
         Dim lList As List(Of String) = ExtractLangLinks(sUrl, sTxt)
         For Each sUri In lList
             tbDzien.Text = "Reading " & sUri.Substring(8, 2).ToUpperInvariant & "..."
@@ -532,32 +530,16 @@ Public NotInheritable Class MainPage
 
     Private Sub MainPage_Loaded(sender As Object, e As RoutedEventArgs)
 
-        If Not ApplicationData.Current.LocalSettings.Values.ContainsKey("EnabledLanguages") Then
-            ApplicationData.Current.LocalSettings.Values("EnabledLanguages") = "pl de fr es ru"
-        End If
-
-        If Not ApplicationData.Current.LocalSettings.Values.ContainsKey("LinksActive") Then
-            ApplicationData.Current.LocalSettings.Values("LinksActive") = "0"
-        End If
-
-
         Dim sTmp
-        If ApplicationData.Current.LocalSettings.Values.ContainsKey("EnabledTabs") Then
-            sTmp = ApplicationData.Current.LocalSettings.Values("EnabledTabs").ToString
-        Else
-            sTmp = "EBD"
-            ApplicationData.Current.LocalSettings.Values("EnabledTabs") = sTmp
-        End If
+        sTmp = App.GetSettingsString("EnabledTabs", "EBD")
 
-        'If sTmp.IndexOf("E") > -1 Then
-        '    bEvent.Visibility = Visibility.Visible
-        'Else
-        '    bEvent.Visibility = Visibility.Collapsed
-        'End If
         bEvent.IsEnabled = (sTmp.IndexOf("E") > -1)
         bBirth.IsEnabled = (sTmp.IndexOf("B") > -1)
         bDeath.IsEnabled = (sTmp.IndexOf("D") > -1)
         bHolid.IsEnabled = (sTmp.IndexOf("H") > -1)
+
+        mDate = Date.Now
+        uiDay.Date = mDate
 
     End Sub
 
@@ -567,9 +549,18 @@ Public NotInheritable Class MainPage
 
         args.Cancel = True
 
-        If ApplicationData.Current.LocalSettings.Values("LinksActive").ToString <> "True" Then Exit Sub
+        If Not App.GetSettingsBool("LinksActive") Then Exit Sub
 
         Windows.System.Launcher.LaunchUriAsync(args.Uri)
 
+    End Sub
+
+    Private Sub uiDay_Changed(sender As CalendarDatePicker, args As CalendarDatePickerDateChangedEventArgs) Handles uiDay.DateChanged
+        ' 11/27/2017 9:11:28 PM  1.5.1.6  Console     Microsoft-Xbox One  10.0.16299.4037 
+        ' System::Nullable$1_System::DateTimeOffset_.get_Value
+        ' Anniversaries::MainPage.uiDay_Changed
+        If uiDay.Date IsNot Nothing Then
+            mDate = uiDay.Date
+        End If
     End Sub
 End Class

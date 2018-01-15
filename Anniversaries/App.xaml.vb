@@ -1,4 +1,5 @@
-﻿''' <summary>
+﻿Imports Windows.Storage
+''' <summary>
 ''' Provides application-specific behavior to supplement the default Application class.
 ''' </summary>
 NotInheritable Class App
@@ -63,5 +64,47 @@ NotInheritable Class App
         ' TODO: Save application state and stop any background activity
         deferral.Complete()
     End Sub
+    Public Shared Function GetSettingsString(sName As String, Optional sDefault As String = "") As String
+        Dim sTmp As String
+
+        sTmp = sDefault
+
+        If ApplicationData.Current.RoamingSettings.Values.ContainsKey(sName) Then
+            sTmp = ApplicationData.Current.RoamingSettings.Values(sName).ToString
+        End If
+        If ApplicationData.Current.LocalSettings.Values.ContainsKey(sName) Then
+            sTmp = ApplicationData.Current.LocalSettings.Values(sName).ToString
+        End If
+
+        Return sTmp
+
+    End Function
+
+    Public Shared Sub SetSettingsString(sName As String, sValue As String, Optional bRoam As Boolean = False)
+        If bRoam Then ApplicationData.Current.RoamingSettings.Values(sName) = sValue
+        ApplicationData.Current.LocalSettings.Values(sName) = sValue
+    End Sub
+    Public Shared Function GetSettingsBool(sName As String, Optional iDefault As Boolean = False) As Boolean
+        Dim sTmp As Boolean
+
+        sTmp = iDefault
+
+        If ApplicationData.Current.RoamingSettings.Values.ContainsKey(sName) Then
+            sTmp = CBool(ApplicationData.Current.RoamingSettings.Values(sName).ToString)
+        End If
+        If ApplicationData.Current.LocalSettings.Values.ContainsKey(sName) Then
+            sTmp = CBool(ApplicationData.Current.LocalSettings.Values(sName).ToString)
+        End If
+
+        Return sTmp
+
+    End Function
+
+    Public Shared Sub SetSettingsBool(sName As String, sValue As Boolean, Optional bRoam As Boolean = False)
+        If bRoam Then ApplicationData.Current.RoamingSettings.Values(sName) = sValue.ToString
+        ApplicationData.Current.LocalSettings.Values(sName) = sValue.ToString
+    End Sub
+
+
 
 End Class

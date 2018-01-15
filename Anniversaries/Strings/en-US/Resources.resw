@@ -229,7 +229,7 @@
     <value>Anniversaries</value>
   </data>
   <data name="mpHeader.Text" xml:space="preserve">
-    <value>Today in history</value>
+    <value>This day in history</value>
   </data>
   <data name="uiSetLinksActive.Header" xml:space="preserve">
     <value>Links to Wikipedia</value>
@@ -245,5 +245,8 @@
   </data>
   <data name="uiSetLinksInfo.Text" xml:space="preserve">
     <value>(links would open Wikipedia page in default browser)</value>
+  </data>
+  <data name="resDay.Label" xml:space="preserve">
+    <value>Pick date</value>
   </data>
 </root>

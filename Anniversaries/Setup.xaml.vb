@@ -15,16 +15,16 @@ Public NotInheritable Class Setup
         If uiSetLangFr.IsOn Then sTmp = sTmp & "fr "
         If uiSetLangEs.IsOn Then sTmp = sTmp & "es "
         If uiSetLangRu.IsOn Then sTmp = sTmp & "ru "
-        ApplicationData.Current.LocalSettings.Values("EnabledLanguages") = sTmp
+        App.SetSettingsString("EnabledLanguages", sTmp)
 
         sTmp = ""
         If uiSetTabE.IsOn Then sTmp = sTmp & "E"
         If uiSetTabB.IsOn Then sTmp = sTmp & "B"
         If uiSetTabD.IsOn Then sTmp = sTmp & "D"
         If uiSetTabH.IsOn Then sTmp = sTmp & "H"
-        ApplicationData.Current.LocalSettings.Values("EnabledTabs") = sTmp
+        App.SetSettingsString("EnabledTabs", sTmp)
 
-        ApplicationData.Current.LocalSettings.Values("LinksActive") = uiSetLinksActive.IsOn.ToString
+        App.SetSettingsBool("LinksActive", uiSetLinksActive.IsOn)
 
         Me.Frame.Navigate(GetType(MainPage))
         'Me.Frame.GoBack()
@@ -32,11 +32,7 @@ Public NotInheritable Class Setup
 
     Private Sub SetupPage_Loaded(sender As Object, e As RoutedEventArgs)
         Dim sTmp As String
-        If ApplicationData.Current.LocalSettings.Values.ContainsKey("EnabledLanguages") Then
-            sTmp = ApplicationData.Current.LocalSettings.Values("EnabledLanguages").ToString
-        Else
-            sTmp = "pl de fr es ru"
-        End If
+        sTmp = App.GetSettingsString("EnabledLanguages", "pl de fr es ru")
 
         uiSetLangEn.IsOn = True
         uiSetLangPl.IsOn = (sTmp.IndexOf("pl") > -1)
@@ -44,24 +40,14 @@ Public NotInheritable Class Setup
         uiSetLangEs.IsOn = (sTmp.IndexOf("es") > -1)
         uiSetLangRu.IsOn = (sTmp.IndexOf("ru") > -1)
 
-        If ApplicationData.Current.LocalSettings.Values.ContainsKey("EnabledTabs") Then
-            sTmp = ApplicationData.Current.LocalSettings.Values("EnabledTabs").ToString
-        Else
-            sTmp = "EBD"
-        End If
+        sTmp = App.GetSettingsString("EnabledTabs", "EBD")
 
         uiSetTabE.IsOn = (sTmp.IndexOf("E") > -1)
         uiSetTabB.IsOn = (sTmp.IndexOf("B") > -1)
         uiSetTabD.IsOn = (sTmp.IndexOf("D") > -1)
         uiSetTabH.IsOn = (sTmp.IndexOf("H") > -1)
 
-        If ApplicationData.Current.LocalSettings.Values.ContainsKey("LinksActive") Then
-            sTmp = ApplicationData.Current.LocalSettings.Values("LinksActive").ToString
-        Else
-            sTmp = "0"
-        End If
-
-        uiSetLinksActive.IsOn = CBool(sTmp)
+        uiSetLinksActive.IsOn = App.GetSettingsBool("LinksActive")
 
     End Sub
 End Class
