@@ -1,0 +1,55 @@
+﻿<Page
+    x:Class="Anniversaries.Setup"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Anniversaries"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d" Loaded="SetupPage_Loaded">
+
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0">
+            <TextBlock x:Uid="settHdr" HorizontalAlignment="Center" Margin="0,0,0,0" Text="Settings" VerticalAlignment="Center" FontSize="22"/>
+            <TextBlock x:Name="uiVersion" HorizontalAlignment="Center" Margin="10,0,0,0" FontSize="10" />
+        </StackPanel>
+        <Button Content="Ok" HorizontalAlignment="Center" Margin="0,0,0,0" Grid.Row="4" VerticalAlignment="Center" Click="bSetupOk" />
+
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" VerticalAlignment="Center" >
+                <ToggleSwitch x:Uid="uiSetTabE" x:Name="uiSetTabE" Header="Active tabs" OffContent="events" OnContent="Events" IsOn="True" Margin="10,10,0,0" HorizontalAlignment="Center"  />
+                <ToggleSwitch x:Uid="uiSetTabB" x:Name="uiSetTabB" OffContent="births" OnContent="Births" IsOn="True" Margin="10,10,0,0" HorizontalAlignment="Center" />
+                <ToggleSwitch x:Uid="uiSetTabD" x:Name="uiSetTabD" OffContent="deaths" OnContent="Deaths" IsOn="True" Margin="10,10,0,0" HorizontalAlignment="Center" />
+                <!-- <ToggleSwitch x:Uid="uiSetTabH" x:Name="uiSetTabH" OffContent="holidays" OnContent="Holidays" Margin="10,10,0,0" HorizontalAlignment="Center"  /> -->
+
+                <ToggleSwitch x:Uid="uiSetLinksActive" x:Name="uiSetLinksActive" Header="Links to Wikipedia" OffContent="blocked" OnContent="Active" Margin="10,50,0,0" HorizontalAlignment="Center" />
+                <TextBlock x:Uid="uiSetLinksInfo" Margin="10,5,0,10" HorizontalAlignment="Center" Text="(links would open Wikipedia page in default browser)" />
+
+                <TextBlock x:Uid="uiSetAutoLoad" Text="Autoload current day on app start" Margin="0,15,0,0" HorizontalAlignment="Center" />
+                <ToggleSwitch Name="uiAutoLoad" HorizontalAlignment="Center" />
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" VerticalAlignment="Center" >
+                <ToggleSwitch x:Uid="uiSetLangEn" x:Name="uiSetLangEn" Header="Active languages" OffContent="english" OnContent="English" IsOn="True" Margin="10,10,0,0" HorizontalAlignment="Center" IsEnabled="False"  />
+                <ToggleSwitch x:Uid="uiSetLangDe" x:Name="uiSetLangDe" OffContent="german" OnContent="Deutsch" IsOn="True" Margin="10,10,0,0" HorizontalAlignment="Center"   />
+                <ToggleSwitch x:Uid="uiSetLangPl" x:Name="uiSetLangPl" OffContent="polish" OnContent="Polski" IsOn="True" Margin="10,10,0,0" HorizontalAlignment="Center" />
+                <ToggleSwitch x:Uid="uiSetLangFr" x:Name="uiSetLangFr" OffContent="french" OnContent="Français" IsOn="True" Margin="10,10,0,0" HorizontalAlignment="Center" />
+                <ToggleSwitch x:Uid="uiSetLangEs" x:Name="uiSetLangEs" OffContent="spanish" OnContent="Español" IsOn="True" Margin="10,10,0,0" HorizontalAlignment="Center" />
+                <ToggleSwitch x:Uid="uiSetLangRu" x:Name="uiSetLangRu" OffContent="russian" OnContent="Русский" IsOn="True" Margin="10,10,0,0" HorizontalAlignment="Center" />
+                <TextBlock x:Uid="uiSetAddLang" HorizontalAlignment="Left" TextWrapping="Wrap" Margin="10,40,0,0" Text="If you want me to add another language, please use FeedBack Hub" VerticalAlignment="Top"/>
+            </StackPanel>
+        </Grid>
+
+    </Grid>
+</Page>

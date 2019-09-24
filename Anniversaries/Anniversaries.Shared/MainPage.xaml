@@ -1,0 +1,142 @@
+﻿<Page
+    x:Class="Anniversaries.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Anniversaries"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d" Loaded="Page_Loaded">
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Name="uiGrid" SizeChanged="uiGrid_Resized">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="9*"/>
+            <!--<RowDefinition Height="1*"/>-->
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock x:Uid="mpHeader" HorizontalAlignment="Center" Margin="0,10,0,15" Text="Anniversaries - today in history" VerticalAlignment="Center" FontSize="24"/>
+        <Grid Name="naView" Grid.Row="1" >
+            <WebView Name="wbViewer" Margin="10,10,10,10" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+            <ProgressBar HorizontalAlignment="Stretch" Visibility="Collapsed" VerticalAlignment="Bottom" Name="uiProgBar"/>
+        </Grid>
+
+        <Grid Grid.Row="2" Name="uiAndroBottom" Margin="0,10,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*" />
+                <ColumnDefinition Width="4*" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Text=" " Name="tbDzienAndroBar" Margin="20,0,0,0" VerticalAlignment="Center" />
+            <StackPanel Orientation="Horizontal" Grid.Column="1">
+
+                <AppBarSeparator/>
+                <AppBarButton x:Uid="bRefresh" Label="Wczytaj" Click="bRead_Click">
+                    <AppBarButton.Icon>
+                        <FontIcon Glyph="&#xE14A;" FontFamily="ms-appx:///Assets/Fonts/winjs-symbols.ttf#Symbols" />
+                    </AppBarButton.Icon>
+                </AppBarButton>
+                <AppBarButton x:Uid="resDay" Label="Kalendarz" >
+                    <AppBarButton.Flyout>
+                        <Flyout >
+                            <DatePicker Name="uiDayAndroBar" DateChanged="uiDayAndro_Changed" />
+                        </Flyout>
+                    </AppBarButton.Flyout>
+                    <AppBarButton.Icon>
+                        <FontIcon Glyph="&#xE163;" FontFamily="ms-appx:///Assets/Fonts/winjs-symbols.ttf#Symbols" />
+                    </AppBarButton.Icon>
+                </AppBarButton>
+                <AppBarSeparator/>
+                <AppBarToggleButton Name="bEventAndroBar" x:Uid="bEvent" Label="Wydarzenia" Click="bEvent_Click" >
+                    <AppBarToggleButton.Icon>
+                        <FontIcon Glyph="&#xE12B;" FontFamily="ms-appx:///Assets/Fonts/winjs-symbols.ttf#Symbols" />
+                    </AppBarToggleButton.Icon>
+                </AppBarToggleButton>
+                <!-- <AppBarToggleButton x:Uid="bHolid" x:Name="bHolid" Icon="OutlineStar" Label="Swieta" Click="bHolid_Click"/> -->
+                <AppBarToggleButton x:Uid="bBirth" Name="bBirthAndroBar" Label="Urodziny" Click="bBirth_Click">
+                    <AppBarToggleButton.Icon>
+                        <!--<FontIcon Glyph="&#xE1E2;" FontFamily="ms-appx:///Assets/Fonts/winjs-symbols.ttf#Symbols" /> -->
+                        <FontIcon Glyph="*"  /> 
+                    </AppBarToggleButton.Icon>
+                </AppBarToggleButton>
+                <AppBarToggleButton x:Uid="bDeath" Name="bDeathAndroBar" Label="Smierci" Click="bDeath_Click">
+                    <AppBarToggleButton.Icon>
+                        <!--<FontIcon Glyph="&#xE1E0;" FontFamily="ms-appx:///Assets/Fonts/winjs-symbols.ttf#Symbols" /> -->
+                        <FontIcon Glyph="†"  />
+                    </AppBarToggleButton.Icon>
+                </AppBarToggleButton>
+                <AppBarSeparator/>
+                <AppBarButton x:Uid="bSettings" Label="Settings" Click="bSetup_Click" >
+                    <AppBarButton.Icon>
+                        <FontIcon Glyph="&#xE115;" FontFamily="ms-appx:///Assets/Fonts/winjs-symbols.ttf#Symbols" />
+                    </AppBarButton.Icon>
+                </AppBarButton>
+                <AppBarButton x:Uid="bHelp" Label="Info" Click="bInfo_Click" >
+                    <AppBarButton.Icon>
+                        <FontIcon Glyph="&#xE11B;" FontFamily="ms-appx:///Assets/Fonts/winjs-symbols.ttf#Symbols" />
+                    </AppBarButton.Icon>
+                </AppBarButton>
+            </StackPanel>
+        </Grid>
+
+    </Grid>
+    <Page.BottomAppBar>
+        <CommandBar Name="uiCmdBar" ClosedDisplayMode="Compact" >
+            <CommandBar.Content>
+                <TextBlock Name="tbDzien" Text=" " Margin="20,10,0,10" />
+            </CommandBar.Content>
+            <AppBarSeparator Name="uiBarSeparat1"/>
+            <AppBarButton x:Uid="bRefresh" Name="bRefresh" Icon="Refresh" Label="Wczytaj" Click="bRead_Click"/>
+                 <AppBarButton x:Uid="resDay" Icon="Calendar" Label="Kalendarz" Name="uiKalendUWP">
+                    <AppBarButton.Flyout>
+                        <Flyout >
+                        <CalendarDatePicker Name="uiDay" DateChanged="uiDay_Changed"/>
+                        </Flyout>
+                    </AppBarButton.Flyout>
+                </AppBarButton>
+            <AppBarButton x:Uid="resDay" Icon="Calendar" Label="Kalendarz" Name="uiKalendAndro" Visibility="Collapsed" >
+                <AppBarButton.Flyout>
+                    <Flyout >
+                        <DatePicker Name="uiDayAndro" Visibility="Collapsed" DateChanged="uiDayAndro_Changed"/>
+                    </Flyout>
+                </AppBarButton.Flyout>
+            </AppBarButton>
+            <AppBarSeparator Name="uiBarSeparat2"/>
+            <AppBarButton Icon="Page" Label="Strona" x:Uid="uiSelektorStrony" Name="uiSelektorStrony">
+                <AppBarButton.Flyout>
+                    <MenuFlyout>
+                        <ToggleMenuFlyoutItem Name="uiSelEvent" Text="Wydarzenia" x:Uid="bEventT"  Click="bEvent_Click" />
+                        <ToggleMenuFlyoutItem Name="uiSelBirth" Text="Urodziny" x:Uid="bBirthT" Click="bBirth_Click"/>
+                        <ToggleMenuFlyoutItem Name="uiSelDeath" Text="Zgony" x:Uid="bDeathT" Click="bDeath_Click"/>
+                    </MenuFlyout>
+                </AppBarButton.Flyout>
+            </AppBarButton>
+            <AppBarToggleButton x:Uid="bEvent" Name="bEvent" Icon="Globe" Label="Wydarzenia" Click="bEvent_Click" />
+                <!-- <AppBarToggleButton x:Uid="bHolid" x:Name="bHolid" Icon="OutlineStar" Label="Swieta" Click="bHolid_Click"/> -->
+                <AppBarToggleButton x:Uid="bBirth" Name="bBirth" Icon="AddFriend" Label="Urodziny" Click="bBirth_Click"/>
+                <AppBarToggleButton x:Uid="bDeath" Name="bDeath" Icon="BlockContact" Label="Smierci" Click="bDeath_Click"/>
+            <AppBarSeparator Name="uiBarSeparat3"/>
+            <AppBarButton x:Uid="bSettings" Name="uiGoSett" Icon="Setting" Label="Settings" Click="bSetup_Click" />
+            <AppBarButton x:Uid="bHelp" Name="uiGoInfo" Icon="Help" Label="Info" Click="bInfo_Click" />
+            <CommandBar.SecondaryCommands>
+                <AppBarButton x:Uid="resDay" Icon="Calendar" Label="Kalendarz" Name="uiKalendUWPSec">
+                    <AppBarButton.Flyout>
+                        <Flyout >
+                            <CalendarDatePicker x:Name="uiDaySec" DateChanged="uiDay_Changed"/>
+                        </Flyout>
+                    </AppBarButton.Flyout>
+                </AppBarButton>
+                <AppBarButton x:Uid="resDay" Icon="Calendar" Label="Kalendarz" Name="uiKalendAndroSec" Visibility="Collapsed" >
+                    <AppBarButton.Flyout>
+                        <Flyout >
+                            <DatePicker Name="uiDayAndroSec" Visibility="Collapsed" DateChanged="uiDayAndro_Changed"/>
+                        </Flyout>
+                    </AppBarButton.Flyout>
+                </AppBarButton>
+                <AppBarButton x:Uid="bSettings" Name="uiGoSettSec" Icon="Setting" Label="Settings" Click="bSetup_Click" />
+                <AppBarButton x:Uid="bHelp" Name="uiGoInfoSec" Icon="Help" Label="Info" Click="bInfo_Click" />
+
+            </CommandBar.SecondaryCommands>
+        </CommandBar>
+
+    </Page.BottomAppBar>
+
+</Page>
