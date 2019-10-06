@@ -47,7 +47,7 @@
                 <ToggleSwitch x:Uid="uiSetLangFr" x:Name="uiSetLangFr" OffContent="french" OnContent="Français" IsOn="True" Margin="10,10,0,0" HorizontalAlignment="Center" />
                 <ToggleSwitch x:Uid="uiSetLangEs" x:Name="uiSetLangEs" OffContent="spanish" OnContent="Español" IsOn="True" Margin="10,10,0,0" HorizontalAlignment="Center" />
                 <ToggleSwitch x:Uid="uiSetLangRu" x:Name="uiSetLangRu" OffContent="russian" OnContent="Русский" IsOn="True" Margin="10,10,0,0" HorizontalAlignment="Center" />
-                <TextBlock x:Uid="uiSetAddLang" HorizontalAlignment="Left" TextWrapping="Wrap" Margin="10,40,0,0" Text="If you want me to add another language, please use FeedBack Hub" VerticalAlignment="Top"/>
+                <TextBlock x:Uid="uiSetAddLang" Name="uiSeeFeedback" HorizontalAlignment="Left" TextWrapping="Wrap" Margin="10,40,0,0" Text="If you want me to add another language, please use FeedBack Hub" VerticalAlignment="Top"/>
             </StackPanel>
         </Grid>
 

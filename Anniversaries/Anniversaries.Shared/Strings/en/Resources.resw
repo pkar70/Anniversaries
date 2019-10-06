@@ -276,4 +276,13 @@
   <data name="uiSelektorStrony.Label" xml:space="preserve">
     <value>Show</value>
   </data>
+  <data name="bHelpM.Text" xml:space="preserve">
+    <value>About</value>
+  </data>
+  <data name="bSettingsM.Text" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="resDayM.Text" xml:space="preserve">
+    <value>Pick date</value>
+  </data>
 </root>

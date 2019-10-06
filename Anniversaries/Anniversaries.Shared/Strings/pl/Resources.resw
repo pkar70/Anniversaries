@@ -276,4 +276,13 @@
   <data name="bEventT.Text" xml:space="preserve">
     <value>Wydarzenia</value>
   </data>
+  <data name="bHelpM.Text" xml:space="preserve">
+    <value>Info</value>
+  </data>
+  <data name="bSettingsM.Text" xml:space="preserve">
+    <value>Ustawienia</value>
+  </data>
+  <data name="resDayM.Text" xml:space="preserve">
+    <value>Wybierz dzień</value>
+  </data>
 </root>

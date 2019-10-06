@@ -65,6 +65,9 @@ namespace Anniversaries
 
             uiSetLinksActive.IsOn = pkar.GetSettingsBool("LinksActive");
             pkar.GetSettingsBool(uiAutoLoad, "AutoLoad");
+
+            if (!pkar.GetPlatform("uwp"))
+                uiSeeFeedback.Visibility = Visibility.Collapsed;
         }
 
     }

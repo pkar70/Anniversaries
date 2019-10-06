@@ -7,17 +7,24 @@ ANDRO UNO BUG:
 * CalendarDatePicker: żeby nie trzeba było dwu wersji, DatePicker i CalendarDatePicker
 * CommandBar: pokazuje tylko SecondaryCommands (brak obsługi innych niż BitmapIcon)
 
+2019.10.06
+* [andro] przełączanie wedle szerokości (emulacja BottomCommandBar w AppBar)
+* [!uwp] Setup: znika tekst o Feedback Hub
+
+2019.10.05
+* [xaml] warunkowa kompilacja XAML (prefix), co robi czytelniejszym kod
+
 2019.09.13
 * MainPage progress bar podczas ładowania (uiProgBar)
 
 2019.09.12
-* [andro] MainPage:OnDateChanged - wykorzystanie sender zamiast nazw obiektów XAML (dla Andro)
+* [andro] MainPage:OnDateChanged - wykorzystanie sender zamiast nazw obiektów XAML
 * [uwp] MainPage:BottomAppBar: przełączanie wedle szerokości
 * [andro] MainPage:BottomAppBar: przełączanie wedle UWP/Andro (gdy naprawią CommandBar)
 
 2019.09.11
 * [andro] emulacja BottomAppBar jako AppBar (początek) - bez uwzględniania szerokości ekranu
-* [andro] workaround do zepsutych ikonek w AppBar, Uno Pull Request
+* [andro] workaround do zepsutych ikonek w AppBar (FontIcon zamiast SymbolIcon), Uno Pull Request
 
 2019.09.10
 * [all] opcja "autoload" danego dnia
@@ -751,11 +758,11 @@ namespace Anniversaries
         private async void bRead_Click(object sender, RoutedEventArgs e)
         {
             // Uno bug override
-            if (pkar.GetPlatform("android"))
-            {
-                if (uiDayAndroBar.Date != null)
-                    mDate = uiDayAndroBar.Date;
-            }
+            //if (pkar.GetPlatform("android"))
+            //{
+            //    if (uiDayAndroBar.Date != null)
+            //        mDate = uiDayAndroBar.Date;
+            //}
 
 
             string sUrl = "";
@@ -766,7 +773,7 @@ namespace Anniversaries
             mDeaths = "";
             mHolid = "";
             tbDzien.Text = "Reading EN...";
-            tbDzienAndroBar.Text = "Reading EN...";
+            
             string sTxt = await ReadOneLang(sUrl, mPreferredLang).ConfigureAwait(true);
 
             sUrl = pkar.GetSettingsString("EnabledLanguages", "pl de fr es ru");
@@ -779,7 +786,6 @@ namespace Anniversaries
             foreach (string sUri in lList)
             {
                 tbDzien.Text = "Reading " + sUri.Substring(8, 2).ToUpperInvariant() + "...";
-                tbDzienAndroBar.Text = "Reading " + sUri.Substring(8, 2).ToUpperInvariant() + "...";
                 await ReadOneLang(sUri, mPreferredLang).ConfigureAwait(true);
                 uiProgBar.Value = uiProgBar.Value + 1;
             }
@@ -811,7 +817,6 @@ namespace Anniversaries
                 bEvent_Click(sender, e);
 
             tbDzien.Text = mDate.ToString("d MMMM", System.Globalization.CultureInfo.CurrentCulture);  // .Day.ToString & " " & MonthNo2PlName(mDate.Month)
-            tbDzienAndroBar.Text = mDate.ToString("d MMMM", System.Globalization.CultureInfo.CurrentCulture);  // .Day.ToString & " " & MonthNo2PlName(mDate.Month)
         }
 
         private static string MetaViewport()
@@ -837,19 +842,20 @@ namespace Anniversaries
             //bHolid.IsChecked = false;
             bBirth.IsChecked = bBir;
             bDeath.IsChecked = bDea;
-            bEventAndroBar.IsChecked = bEv;
-            //bHolid.IsChecked = false;
-            bBirthAndroBar.IsChecked = bBir;
-            bDeathAndroBar.IsChecked = bDea;
+            //bEventAndroBar.IsChecked = bEv;
+            ////bHolid.IsChecked = false;
+            //bBirthAndroBar.IsChecked = bBir;
+            //bDeathAndroBar.IsChecked = bDea;
 
             // oraz z menu
+#if NETFX_CORE
             uiSelEvent.IsChecked = bEv;
             uiSelBirth.IsChecked = bBir;
             uiSelDeath.IsChecked = bDea;
-
+#endif 
         }
 
-        private void bEvent_Click(object sender, RoutedEventArgs e)
+            private void bEvent_Click(object sender, RoutedEventArgs e)
         {
             //if(pkar.GetPlatform("android"))
             //    SetWebView("<p>testowyparagraf</p>","");
@@ -875,135 +881,130 @@ namespace Anniversaries
 
         private void UwpAndro()
         { // przełączanie aktywnego w Android (AppBar) i w UWP (BottomAppBar-CommandBar)
-            // pierwotna wersja miała #if, ale tak chyba jest lepiej
-            if (pkar.GetPlatform("uwp"))
-            {
-                uiKalendUWP.Visibility = Visibility.Visible;
-                uiKalendAndro.Visibility = Visibility.Collapsed;
-                uiDay.Date = mDate;
-                uiAndroBottom.Visibility = Visibility.Collapsed;
-            }
-            else
-            {
-                uiKalendUWP.Visibility = Visibility.Collapsed;
-                uiKalendAndro.Visibility = Visibility.Visible;
-                // uiDayAndro.Date = mDate;
-                uiDayAndroBar.Date = mDate; // emulowane w AndroidBar
-                uiAndroBottom.Visibility = Visibility.Visible;
-            }
-
+          // pierwotna wersja miała #if, ale tak chyba jest lepiej
+            uiDay.Date = mDate;
+#if NETFX_CORE
+            uiDaySec.Date = mDate;
+#endif 
         }
 
         private int CmdBarWidth()
         {
 
             int iIconWidth, iGridWidth;
+            bool bUwp = pkar.GetPlatform("uwp");
 
-            if (pkar.GetPlatform("uwp"))
+            //if (pkar.GetPlatform("uwp"))
                 iIconWidth = (int)bRefresh.ActualWidth; // zakładam że to będzie zawsze widoczne, czyli dobrze policzy
-            else
-                iIconWidth = 80;    // *TODO* jest na sztywno, bo w Android się trudno połapać :) [bo nie wiadomo co będzie pokazane]
+            //else
+            //    iIconWidth = 80;    // *TODO* jest na sztywno, bo w Android się trudno połapać :) [bo nie wiadomo co będzie pokazane]
             iGridWidth = (int)uiGrid.ActualWidth;
 
             System.Diagnostics.Debug.WriteLine("width: grid=" + iGridWidth.ToString() + ", icon=" + iIconWidth.ToString());
 
-            iGridWidth -= (int)(0.7 * iIconWidth); // miejsce na "...", UWP: 48
+            if (bUwp)
+                iGridWidth -= (int)(2.7 * iIconWidth); // miejsce na tekst oraz "..." (UWP: 48 px)
+            else
+                iGridWidth -= 120;
 
-            int iIcons = (int)Math.Floor(uiGrid.ActualWidth / iIconWidth);  
+            int iIcons = (int)Math.Floor((double)iGridWidth / iIconWidth);  
             // Lumia532: 320 - 48 / 68 = 4: zgadza się :)
-            iIcons -= 2;    // odliczam miejsce na tekst
             return iIcons;
         }
 
         private void DopasowanieCmdBar()
-        {// ustawienie w zależności od szerokości ekranu
-         // Lumia 532 ma 480 px, i to są 4 ikonki + wielokropek
-         // separator ma szerokość połowy, "..." trochę więcej (jakieś 3/4)
+        {
             int iIcons = CmdBarWidth();
 
-            // pomysły:
-            // text + 10 + ... : sep, 2x (load, date), sep, 3x przelacznik zawartosci, sep, 2x (info, setup), wielokropek
-            // text + 9 + ... : 2x (load, date), sep, 3x przelacznik zawartosci, sep, 2x (info, setup), wielokropek
-            // text + 5 + ... : 1x load, sep, 3x przelacznik zawartosci, wielokropek (info, setup, date)
-            // text + 2 + ... : text, submenu przelacznika, submenu komend, wielokropek
-            // (czyli migracje miedzy secondary a primarycommand)
-            //System.Diagnostics.Debug.WriteLine("ikonek ma być niby " + iIcons.ToString());
-            bool bUWP = pkar.GetPlatform("uwp");
+            // ustawienie w zależności od szerokości ekranu
+             // Lumia 532 ma 480 px, i to są 4 ikonki + wielokropek
+             // separator ma szerokość połowy, "..." trochę więcej (jakieś 3/4)
 
 
-            if (iIcons > 8 )
-            {
-                // text + 8.5 + ... : sep, 2x (load, date), sep, 3x przelacznik zawartosci, sep, 2x (info, setup), wielokropek
+                // pomysły:
+                // text + 10 + ... : sep, 2x (load, date), sep, 3x przelacznik zawartosci, sep, 2x (info, setup), wielokropek
+                // text + 9 + ... : 2x (load, date), sep, 3x przelacznik zawartosci, sep, 2x (info, setup), wielokropek
+                // text + 5 + ... : 1x load, sep, 3x przelacznik zawartosci, wielokropek (info, setup, date)
+                // text + 2 + ... : text, submenu przelacznika, submenu komend, wielokropek
+                // (czyli migracje miedzy secondary a primarycommand)
+                //System.Diagnostics.Debug.WriteLine("ikonek ma być niby " + iIcons.ToString());
 
+
+                if (iIcons > 8)
+                {
+                    // text + 7butt + 3sep = 8.5 + ... : sep, 2x (load, date), sep, 3x przelacznik zawartosci, sep, 2x (info, setup), wielokropek
+
+                    // zrob co trzeba i dalej nie idź
+                    // primary commands
+                    tbDzien.Visibility = Visibility.Visible;
+                    uiBarSeparat1.Visibility = Visibility.Visible;
+                    bRefresh.Visibility = Visibility.Visible;
+                    uiKalend.Visibility = Visibility.Visible;
+                    uiBarSeparat2.Visibility = Visibility.Visible;
+                    uiSelektorStrony.Visibility = Visibility.Collapsed;
+                    bEvent.Visibility = Visibility.Visible;
+                    // bHolid.Visibility = Visibility.Visible;
+                    bBirth.Visibility = Visibility.Visible;
+                    bDeath.Visibility = Visibility.Visible;
+                    uiBarSeparat3.Visibility = Visibility.Visible;
+                    uiGoSett.Visibility = Visibility.Visible;
+                    uiGoInfo.Visibility = Visibility.Visible;
+
+                    // secondary commands
+
+                    uiKalendSec.Visibility = Visibility.Collapsed;
+                    uiGoSettSec.Visibility = Visibility.Collapsed;
+                    uiGoInfoSec.Visibility = Visibility.Collapsed;
+                    // dla Android: obsluga guzika z dalszymi komendami
+#if !NETFX_CORE
+                    uiAndroSec.Visibility = Visibility.Collapsed;
+#endif 
+
+                    return;
+                }
+
+
+                if (iIcons > 7)
+                {
+                // text + + 7butt + 2sep = 8 + ... : 2x (load, date), sep, 3x przelacznik zawartosci, sep, 2x (info, setup), wielokropek
                 // zrob co trzeba i dalej nie idź
                 // primary commands
                 tbDzien.Visibility = Visibility.Visible;
-                uiBarSeparat1.Visibility = Visibility.Visible;
-                bRefresh.Visibility = Visibility.Visible;
-                uiKalendUWP.Visibility = bUWP ? Visibility.Visible:Visibility.Collapsed;
-                uiKalendAndro.Visibility = bUWP ? Visibility.Collapsed : Visibility.Visible;
-                uiBarSeparat2.Visibility = Visibility.Visible;
-                uiSelektorStrony.Visibility = Visibility.Collapsed;
-                bEvent.Visibility = Visibility.Visible;
-                // bHolid.Visibility = Visibility.Visible;
-                bBirth.Visibility = Visibility.Visible; 
-                bDeath.Visibility = Visibility.Visible;
-                uiBarSeparat3.Visibility = Visibility.Visible;
-                uiGoSett.Visibility = Visibility.Visible;
-                uiGoInfo.Visibility = Visibility.Visible;
-                
-                // secondary commands
-                uiKalendUWPSec.Visibility = Visibility.Collapsed;
-                uiKalendAndroSec.Visibility = Visibility.Collapsed; 
-                uiGoSettSec.Visibility = Visibility.Collapsed;
-                uiGoInfoSec.Visibility = Visibility.Collapsed; 
+                    uiBarSeparat1.Visibility = Visibility.Collapsed;
+                    bRefresh.Visibility = Visibility.Visible;
+                    uiKalend.Visibility = Visibility.Visible;
+                    uiBarSeparat2.Visibility = Visibility.Visible;
+                    uiSelektorStrony.Visibility = Visibility.Collapsed;
+                    bEvent.Visibility = Visibility.Visible;
+                    // bHolid.Visibility = Visibility.Visible;
+                    bBirth.Visibility = Visibility.Visible;
+                    bDeath.Visibility = Visibility.Visible;
+                    uiBarSeparat3.Visibility = Visibility.Visible;
+                    uiGoSett.Visibility = Visibility.Visible;
+                    uiGoInfo.Visibility = Visibility.Visible;
 
+                    // secondary commands
+                    uiKalendSec.Visibility = Visibility.Collapsed;
+                    uiGoSettSec.Visibility = Visibility.Collapsed;
+                    uiGoInfoSec.Visibility = Visibility.Collapsed;
+                    // dla Android: obsluga guzika z dalszymi komendami
+#if !NETFX_CORE
+                    uiAndroSec.Visibility = Visibility.Collapsed;
+#endif 
 
-                return;
-            }
+                    return;
+                }
 
-
-            if (iIcons > 7)
+            if (iIcons > 5)
             {
-                // text + 8 + ... : 2x (load, date), sep, 3x przelacznik zawartosci, sep, 2x (info, setup), wielokropek
+                // text + 5.5 + ... : 1x load, sep, 3x przelacznik zawartosci, wielokropek (info, setup, date)
 
                 // zrob co trzeba i dalej nie idź
                 // primary commands
                 tbDzien.Visibility = Visibility.Visible;
                 uiBarSeparat1.Visibility = Visibility.Collapsed;
                 bRefresh.Visibility = Visibility.Visible;
-                uiKalendUWP.Visibility = bUWP ? Visibility.Visible : Visibility.Collapsed;
-                uiKalendAndro.Visibility = bUWP ? Visibility.Collapsed : Visibility.Visible;
-                uiBarSeparat2.Visibility = Visibility.Visible;
-                uiSelektorStrony.Visibility = Visibility.Collapsed;
-                bEvent.Visibility = Visibility.Visible;
-                // bHolid.Visibility = Visibility.Visible;
-                bBirth.Visibility = Visibility.Visible;
-                bDeath.Visibility = Visibility.Visible;
-                uiBarSeparat3.Visibility = Visibility.Visible;
-                uiGoSett.Visibility = Visibility.Visible;
-                uiGoInfo.Visibility = Visibility.Visible;
-
-                // secondary commands
-                uiKalendUWPSec.Visibility = Visibility.Collapsed;
-                uiKalendAndroSec.Visibility = Visibility.Collapsed;
-                uiGoSettSec.Visibility = Visibility.Collapsed;
-                uiGoInfoSec.Visibility = Visibility.Collapsed;
-
-                return;
-            }
-
-            if (iIcons > 4)
-            {
-                // text + 4.5 + ... : 1x load, sep, 3x przelacznik zawartosci, wielokropek (info, setup, date)
-
-                // zrob co trzeba i dalej nie idź
-                // primary commands
-                tbDzien.Visibility = Visibility.Visible;
-                uiBarSeparat1.Visibility = Visibility.Collapsed;
-                bRefresh.Visibility = Visibility.Visible;
-                uiKalendUWP.Visibility = Visibility.Collapsed;
-                uiKalendAndro.Visibility = Visibility.Collapsed;
+                uiKalend.Visibility = Visibility.Visible;
                 uiBarSeparat2.Visibility = Visibility.Visible;
                 uiSelektorStrony.Visibility = Visibility.Collapsed;
                 bEvent.Visibility = Visibility.Visible;
@@ -1015,37 +1016,74 @@ namespace Anniversaries
                 uiGoInfo.Visibility = Visibility.Collapsed;
 
                 // secondary commands
-                uiKalendUWPSec.Visibility = bUWP ? Visibility.Visible : Visibility.Collapsed;
-                uiKalendAndroSec.Visibility = bUWP ? Visibility.Collapsed : Visibility.Visible;
+                uiKalendSec.Visibility = Visibility.Collapsed;
                 uiGoSettSec.Visibility = Visibility.Visible;
                 uiGoInfoSec.Visibility = Visibility.Visible;
+                // dla Android: obsluga guzika z dalszymi komendami
+#if !NETFX_CORE
+                    uiAndroSec.Visibility = Visibility.Visible;
+#endif
 
                 return;
             }
 
-            // najmniejsze
 
-            // primary commands
-            tbDzien.Visibility = Visibility.Visible;
-            uiBarSeparat1.Visibility = Visibility.Collapsed;
-            bRefresh.Visibility = Visibility.Visible;
-            uiKalendUWP.Visibility = Visibility.Collapsed;
-            uiKalendAndro.Visibility = Visibility.Collapsed;
-            uiBarSeparat2.Visibility = Visibility.Collapsed;
-            uiSelektorStrony.Visibility = Visibility.Visible;
-            bEvent.Visibility = Visibility.Collapsed;
-            // bHolid.Visibility = Visibility.Collapsed;
-            bBirth.Visibility = Visibility.Collapsed;
-            bDeath.Visibility = Visibility.Collapsed;
-            uiBarSeparat3.Visibility = Visibility.Collapsed;
-            uiGoSett.Visibility = Visibility.Collapsed;
-            uiGoInfo.Visibility = Visibility.Collapsed;
+            if (iIcons > 4)
+                {
+                    // text + 4.5 + ... : 1x load, sep, 3x przelacznik zawartosci, wielokropek (info, setup, date)
 
-            // secondary commands
-            uiKalendUWPSec.Visibility = bUWP ? Visibility.Visible : Visibility.Collapsed;
-            uiKalendAndroSec.Visibility = bUWP ? Visibility.Collapsed : Visibility.Visible;
-            uiGoSettSec.Visibility = Visibility.Visible;
-            uiGoInfoSec.Visibility = Visibility.Visible;
+                    // zrob co trzeba i dalej nie idź
+                    // primary commands
+                    tbDzien.Visibility = Visibility.Visible;
+                    uiBarSeparat1.Visibility = Visibility.Collapsed;
+                    bRefresh.Visibility = Visibility.Visible;
+                    uiKalend.Visibility = Visibility.Collapsed;
+                    uiBarSeparat2.Visibility = Visibility.Visible;
+                    uiSelektorStrony.Visibility = Visibility.Collapsed;
+                    bEvent.Visibility = Visibility.Visible;
+                    // bHolid.Visibility = Visibility.Visible;
+                    bBirth.Visibility = Visibility.Visible;
+                    bDeath.Visibility = Visibility.Visible;
+                    uiBarSeparat3.Visibility = Visibility.Collapsed;
+                    uiGoSett.Visibility = Visibility.Collapsed;
+                    uiGoInfo.Visibility = Visibility.Collapsed;
+
+                    // secondary commands
+                    uiKalendSec.Visibility = Visibility.Visible;
+                    uiGoSettSec.Visibility = Visibility.Visible;
+                    uiGoInfoSec.Visibility = Visibility.Visible;
+                    // dla Android: obsluga guzika z dalszymi komendami
+#if !NETFX_CORE
+                    uiAndroSec.Visibility = Visibility.Visible;
+#endif 
+
+                    return;
+                }
+
+                // najmniejsze
+
+                // primary commands
+                tbDzien.Visibility = Visibility.Visible;
+                uiBarSeparat1.Visibility = Visibility.Collapsed;
+                bRefresh.Visibility = Visibility.Visible;
+                uiKalend.Visibility = Visibility.Collapsed;
+                uiBarSeparat2.Visibility = Visibility.Collapsed;
+                uiSelektorStrony.Visibility = Visibility.Visible;
+                bEvent.Visibility = Visibility.Collapsed;
+                // bHolid.Visibility = Visibility.Collapsed;
+                bBirth.Visibility = Visibility.Collapsed;
+                bDeath.Visibility = Visibility.Collapsed;
+                uiBarSeparat3.Visibility = Visibility.Collapsed;
+                uiGoSett.Visibility = Visibility.Collapsed;
+                uiGoInfo.Visibility = Visibility.Collapsed;
+
+                // secondary commands
+                uiKalendSec.Visibility = Visibility.Visible;
+                uiGoSettSec.Visibility = Visibility.Visible;
+                uiGoInfoSec.Visibility = Visibility.Visible;
+#if !NETFX_CORE
+                uiAndroSec.Visibility = Visibility.Visible;
+#endif
 
         }
 
