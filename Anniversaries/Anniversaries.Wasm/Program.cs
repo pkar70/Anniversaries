@@ -1,7 +1,7 @@
 ﻿using System;
 using Windows.UI.Xaml;
 
-namespace Anniversaries.Wasm
+namespace Anniversaries
 {
     public class Program
     {

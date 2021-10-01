@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="Anniversaries.Anniversaries" android:versionCode="1" android:versionName="10.1909.1.0" android:installLocation="auto">
-	<uses-sdk android:minSdkVersion="23" android:targetSdkVersion="28" />
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="pkar.Anniversaries" android:versionCode="21071" android:versionName="10.2107.1.0" android:installLocation="auto">
+	<uses-sdk android:minSdkVersion="22" android:targetSdkVersion="30" />
 	<uses-permission android:name="android.permission.INTERNET" />
 	<application android:label="Anniversaries" android:icon="@drawable/Icon"></application>
 </manifest>

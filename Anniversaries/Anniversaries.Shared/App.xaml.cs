@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
+//using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.Foundation;
@@ -31,8 +31,10 @@ namespace Anniversaries
         /// </summary>
         public App()
         {
-           // ConfigureFilters(Uno.Extensions.LogExtensionPoint.AmbientLoggerFactory);
-
+#if __ANDROID__
+            // ConfigureFilters(Uno.Extensions.LogExtensionPoint.AmbientLoggerFactory);
+            InitializeLogging(); // nowsze Uno
+#endif 
             this.InitializeComponent();
             // this.Suspending += OnSuspending; // komentuje, bo OnSuspending jest i tak puste
         }
@@ -48,10 +50,10 @@ namespace Anniversaries
         protected override void OnLaunched(LaunchActivatedEventArgs e)
         {
 #if DEBUG
-			if (System.Diagnostics.Debugger.IsAttached)
-			{
-				// this.DebugSettings.EnableFrameRateCounter = true;
-			}
+            if (System.Diagnostics.Debugger.IsAttached)
+            {
+                // this.DebugSettings.EnableFrameRateCounter = true;
+            }
 #endif
             //gsUserName = "UKNOWN";
             //try
@@ -63,6 +65,11 @@ namespace Anniversaries
 
             //}
 
+
+//#if !NETFX_CORE
+//            // wymagane dla działania CalendarDatePicker
+//            Uno.UI.FeatureConfiguration.Popup.UseNativePopup = false;
+//#endif 
 
             Frame rootFrame = Windows.UI.Xaml.Window.Current.Content as Frame;
 
@@ -88,22 +95,22 @@ namespace Anniversaries
                 Windows.UI.Xaml.Window.Current.Content = rootFrame;
             }
 
-#if NETFX_CORE
+//#if NETFX_CORE
             if (e != null && e.PrelaunchActivated == true) return;
-#else
+//#else
             //Uno.UI.FeatureConfiguration.UIElement.UseUWPDefaultStyles = false;
-#endif
+//#endif
 
             if (rootFrame.Content == null)
-                {
+            {
                 // When the navigation stack isn't restored navigate to the first page,
                 // configuring the new page by passing required information as a navigation
                 // parameter
 
                 rootFrame.Navigate(typeof(MainPage), e.Arguments);
-                }
-                // Ensure the current window is active
-                Windows.UI.Xaml.Window.Current.Activate();
+            }
+            // Ensure the current window is active
+            Windows.UI.Xaml.Window.Current.Activate();
         }
 
 
@@ -126,7 +133,7 @@ namespace Anniversaries
             }
             catch (Exception ex)
             {
-                pkar.CrashMessageExit("@OnNavigatedAddBackButton", ex.Message);
+                p.k.CrashMessageExit("@OnNavigatedAddBackButton", ex.Message);
             }
         }
 
@@ -135,7 +142,7 @@ namespace Anniversaries
         {
             try
             {
-                (Window.Current.Content as Frame).GoBack();
+                (Windows.UI.Xaml.Window.Current.Content as Frame).GoBack();
                 e.Handled = true;
             }
             catch { }
@@ -167,46 +174,166 @@ namespace Anniversaries
         //    deferral.Complete();
         //}
 
+#if false
+#if NETFX_CORE
+        // previous UNO
+        /// <summary>
+        /// Configures global logging
+        /// </summary>
+        /// <param name="factory"></param>
+        static void ConfigureFilters(ILoggerFactory factory)
+        {
+            factory
+                .WithFilter(new FilterLoggerSettings
+                    {
+                        { "Uno", LogLevel.Warning },
+                        { "Windows", LogLevel.Warning },
 
-//        /// <summary>
-//        /// Configures global logging
-//        /// </summary>
-//        /// <param name="factory"></param>
-//        static void ConfigureFilters(ILoggerFactory factory)
-//        {
-//            factory
-//                .WithFilter(new FilterLoggerSettings
-//                    {
-//                        { "Uno", LogLevel.Warning },
-//                        { "Windows", LogLevel.Warning },
+						// Debug JS interop
+						// { "Uno.Foundation.WebAssemblyRuntime", LogLevel.Debug },
 
-//						// Debug JS interop
-//						// { "Uno.Foundation.WebAssemblyRuntime", LogLevel.Debug },
+						// Generic Xaml events
+						// { "Windows.UI.Xaml", LogLevel.Debug },
+						// { "Windows.UI.Xaml.VisualStateGroup", LogLevel.Debug },
+						// { "Windows.UI.Xaml.StateTriggerBase", LogLevel.Debug },
+						// { "Windows.UI.Xaml.UIElement", LogLevel.Debug },
 
-//						// Generic Xaml events
-//						// { "Windows.UI.Xaml", LogLevel.Debug },
-//						// { "Windows.UI.Xaml.VisualStateGroup", LogLevel.Debug },
-//						// { "Windows.UI.Xaml.StateTriggerBase", LogLevel.Debug },
-//						// { "Windows.UI.Xaml.UIElement", LogLevel.Debug },
+						// Layouter specific messages
+						// { "Windows.UI.Xaml.Controls", LogLevel.Debug },
+						// { "Windows.UI.Xaml.Controls.Layouter", LogLevel.Debug },
+						// { "Windows.UI.Xaml.Controls.Panel", LogLevel.Debug },
+						// { "Windows.Storage", LogLevel.Debug },
 
-//						// Layouter specific messages
-//						// { "Windows.UI.Xaml.Controls", LogLevel.Debug },
-//						// { "Windows.UI.Xaml.Controls.Layouter", LogLevel.Debug },
-//						// { "Windows.UI.Xaml.Controls.Panel", LogLevel.Debug },
-//						// { "Windows.Storage", LogLevel.Debug },
+						// Binding related messages
+						// { "Windows.UI.Xaml.Data", LogLevel.Debug },
 
-//						// Binding related messages
-//						// { "Windows.UI.Xaml.Data", LogLevel.Debug },
+						// DependencyObject memory references tracking
+						// { "ReferenceHolder", LogLevel.Debug },
+					}
+                )
+#if DEBUG
+                .AddConsole(LogLevel.Debug);
+#else
+                .AddConsole(LogLevel.Information);
+#endif
+        }
+#else
+        // nowsze Uno
+        /// <summary>
+        /// Configures global Uno Platform logging
+        /// </summary>
+        private static void InitializeLogging()
+        {
+            var factory = LoggerFactory.Create(builder =>
+            {
+#if __WASM__
+                builder.AddProvider(new global::Uno.Extensions.Logging.WebAssembly.WebAssemblyConsoleLoggerProvider());
+#elif __IOS__
+                builder.AddProvider(new global::Uno.Extensions.Logging.OSLogLoggerProvider());
+#elif NETFX_CORE
+                builder.AddDebug();
+#else
+                builder.AddConsole();
+#endif
 
-//						// DependencyObject memory references tracking
-//						// { "ReferenceHolder", LogLevel.Debug },
-//					}
-//                )
-//#if DEBUG
-//				.AddConsole(LogLevel.Debug);
-//#else
-//                .AddConsole(LogLevel.Information);
-//#endif
-//        }
+                // Exclude logs below this level
+                builder.SetMinimumLevel(LogLevel.Information);
+
+                // Default filters for Uno Platform namespaces
+                builder.AddFilter("Uno", LogLevel.Warning);
+                builder.AddFilter("Windows", LogLevel.Warning);
+                builder.AddFilter("Microsoft", LogLevel.Warning);
+
+                // Generic Xaml events
+                // builder.AddFilter("Windows.UI.Xaml", LogLevel.Debug );
+                // builder.AddFilter("Windows.UI.Xaml.VisualStateGroup", LogLevel.Debug );
+                // builder.AddFilter("Windows.UI.Xaml.StateTriggerBase", LogLevel.Debug );
+                // builder.AddFilter("Windows.UI.Xaml.UIElement", LogLevel.Debug );
+                // builder.AddFilter("Windows.UI.Xaml.FrameworkElement", LogLevel.Trace );
+
+                // Layouter specific messages
+                // builder.AddFilter("Windows.UI.Xaml.Controls", LogLevel.Debug );
+                // builder.AddFilter("Windows.UI.Xaml.Controls.Layouter", LogLevel.Debug );
+                // builder.AddFilter("Windows.UI.Xaml.Controls.Panel", LogLevel.Debug );
+
+                // builder.AddFilter("Windows.Storage", LogLevel.Debug );
+
+                // Binding related messages
+                // builder.AddFilter("Windows.UI.Xaml.Data", LogLevel.Debug );
+                // builder.AddFilter("Windows.UI.Xaml.Data", LogLevel.Debug );
+
+                // Binder memory references tracking
+                // builder.AddFilter("Uno.UI.DataBinding.BinderReferenceHolder", LogLevel.Debug );
+
+                // RemoteControl and HotReload related
+                // builder.AddFilter("Uno.UI.RemoteControl", LogLevel.Information);
+
+                // Debug JS interop
+                // builder.AddFilter("Uno.Foundation.WebAssemblyRuntime", LogLevel.Debug );
+            });
+
+            global::Uno.Extensions.LogExtensionPoint.AmbientLoggerFactory = factory;
+        }
+#endif
+#endif
+#if __ANDROID__
+        // nowsze Uno
+        /// <summary>
+        /// Configures global Uno Platform logging
+        /// </summary>
+        private static void InitializeLogging()
+        {
+            var factory = LoggerFactory.Create(builder =>
+            {
+#if __WASM__
+                builder.AddProvider(new global::Uno.Extensions.Logging.WebAssembly.WebAssemblyConsoleLoggerProvider());
+#elif __IOS__
+                builder.AddProvider(new global::Uno.Extensions.Logging.OSLogLoggerProvider());
+#elif NETFX_CORE
+                builder.AddDebug();
+#else
+                builder.AddConsole();
+#endif
+
+                // Exclude logs below this level
+                builder.SetMinimumLevel(LogLevel.Information);
+
+                // Default filters for Uno Platform namespaces
+                builder.AddFilter("Uno", LogLevel.Warning);
+                builder.AddFilter("Windows", LogLevel.Warning);
+                builder.AddFilter("Microsoft", LogLevel.Warning);
+
+                // Generic Xaml events
+                // builder.AddFilter("Windows.UI.Xaml", LogLevel.Debug );
+                // builder.AddFilter("Windows.UI.Xaml.VisualStateGroup", LogLevel.Debug );
+                // builder.AddFilter("Windows.UI.Xaml.StateTriggerBase", LogLevel.Debug );
+                // builder.AddFilter("Windows.UI.Xaml.UIElement", LogLevel.Debug );
+                // builder.AddFilter("Windows.UI.Xaml.FrameworkElement", LogLevel.Trace );
+
+                // Layouter specific messages
+                // builder.AddFilter("Windows.UI.Xaml.Controls", LogLevel.Debug );
+                // builder.AddFilter("Windows.UI.Xaml.Controls.Layouter", LogLevel.Debug );
+                // builder.AddFilter("Windows.UI.Xaml.Controls.Panel", LogLevel.Debug );
+
+                // builder.AddFilter("Windows.Storage", LogLevel.Debug );
+
+                // Binding related messages
+                // builder.AddFilter("Windows.UI.Xaml.Data", LogLevel.Debug );
+                // builder.AddFilter("Windows.UI.Xaml.Data", LogLevel.Debug );
+
+                // Binder memory references tracking
+                // builder.AddFilter("Uno.UI.DataBinding.BinderReferenceHolder", LogLevel.Debug );
+
+                // RemoteControl and HotReload related
+                // builder.AddFilter("Uno.UI.RemoteControl", LogLevel.Information);
+
+                // Debug JS interop
+                // builder.AddFilter("Uno.Foundation.WebAssemblyRuntime", LogLevel.Debug );
+            });
+
+            global::Uno.Extensions.LogExtensionPoint.AmbientLoggerFactory = factory;
+        }
+#endif
+
     }
 }

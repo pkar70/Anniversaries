@@ -1,11 +1,51 @@
 ﻿/*
 
 ANDRO UNO BUG:
-* DatePicker, nie zmienia picker.Date , Uno Pull Request? [a może brakuje tylko guzika OK? i nowy Uno.Ui bedzie ok?]
 * BottomAppBar: w ogóle nie działa
 * AppBar: zepsute ikonki [workaround], niepotrzebny button rozwijania ze złą ikonką (a i tak nie działa)
-* CalendarDatePicker: żeby nie trzeba było dwu wersji, DatePicker i CalendarDatePicker
 * CommandBar: pokazuje tylko SecondaryCommands (brak obsługi innych niż BitmapIcon)
+
+2021.06.18
+* Uno 3.8.6, już jest całość w Uno.Master
+* dodaję Extensions dla XML, żeby zmniejszyć liczbę #if - e, lipa, niepotrzebne, bo wszak w 3.8.6 jest już Windows.XML
+
+2021.04.03
+* Uno 3.6.6
+
+2021.02.27
+* UNO 3.5.1, Android 11
+
+STORE ANDROID 2010.1
+
+2020.10.28
+* LINK pkModuleShared.cs [..\..\..\_mojeSuby\pkarModule-Uno3-1-6.cs]
+*   nie przenoszę ProgBar na modułowy, bo w Android musi być "piętro wyżej" (jest CommandBar najniżej)
+*   nie da się przejść na CommandBar, bo nie ma SecondaryCommands, a tu jest tego dużo
+*   dodałem brakujący font (dla Android)
+
+2020.10.27
+ * [Android] przechodze na Uno 3.1.6 (z dodatkami: 3.2.0-dev.265)
+
+STORE ANDROID 2009.2
+
+2020.08.28
+ * podmieniam Uno na bazujące na 3.0.1515 (bo gogus wymusza kompilacje target Android 10)
+
+STORE ANDROID 2002.1
+
+2020.02.12
+ * podmieniam Uno na bazująca na 945 - aktualizacja pkModuleShared (dużo już wprowadziłem do Uno), usuwam niepotrzebne Nugety
+ * [Android] splashscreen
+
+STORE ANDROID 1912.1
+
+2019.12.22
+* nowa kompilacja Uno, bazująca na 2.1.0-dev.408 (tylko CalendarDatePicker własny,  WebViewer.NavigateToString oraz MenuFlyoutitem.click już w base Uno)
+
+2019.10.13
+* dodałem do Uno.UI CalendarDatePicker, więc upraszczam kod - bez DatePicker
+
+STORE 10.1910
 
 2019.10.06
 * [andro] przełączanie wedle szerokości (emulacja BottomCommandBar w AppBar)
@@ -61,7 +101,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
+//using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.UI.Xaml;
@@ -72,11 +112,11 @@ using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 
-#if NETFX_CORE
+//#if NETFX_CORE
 using TYPXML = Windows.Data.Xml.Dom;
-#else
-using TYPXML = System.Xml;
-#endif
+//#else
+//using TYPXML = System.Xml;
+//#endif
 
 
 
@@ -153,38 +193,38 @@ namespace Anniversaries
 
         }
 
-        private static string MonthNo2PlName(int iMonth)
-        {
-            switch (iMonth)
-            {
-                case 1:
-                    return "stycznia";
-                case 2:
-                    return "lutego";
-                case 3:
-                    return "marca";
-                case 4:
-                    return "kwietnia";
-                case 5:
-                    return "maja";
-                case 6:
-                    return "czerwca";
-                case 7:
-                    return "lipca";
-                case 8:
-                    return "sierpnia";
-                case 9:
-                    return "września";
-                case 10:
-                    return "października";
-                case 11:
-                    return "listopada";
-                case 12:
-                    return "grudnia";
-                default:
-                    return "stycznia";
-            }
-        }
+        //private static string MonthNo2PlName(int iMonth)
+        //{
+        //    switch (iMonth)
+        //    {
+        //        case 1:
+        //            return "stycznia";
+        //        case 2:
+        //            return "lutego";
+        //        case 3:
+        //            return "marca";
+        //        case 4:
+        //            return "kwietnia";
+        //        case 5:
+        //            return "maja";
+        //        case 6:
+        //            return "czerwca";
+        //        case 7:
+        //            return "lipca";
+        //        case 8:
+        //            return "sierpnia";
+        //        case 9:
+        //            return "września";
+        //        case 10:
+        //            return "października";
+        //        case 11:
+        //            return "listopada";
+        //        case 12:
+        //            return "grudnia";
+        //        default:
+        //            return "stycznia";
+        //    }
+        //}
 
         /// <summary>
         /// Wycięcie z _sPage_ tekstu od _sFrom_ do początku następnego h2
@@ -214,35 +254,35 @@ namespace Anniversaries
             return sTxt.Substring(0, iInd + 5);
         }
 
-        private string WytnijObrazkiDE(string sPage)
-        {
-            // wikipedia.de ma obrazki wklejone - ale przerywaja one <ul>, wiec latwo wyrzucic
-            int iInd;
-            string sTmp = "";
+        //private string WytnijObrazkiDE(string sPage)
+        //{
+        //    // wikipedia.de ma obrazki wklejone - ale przerywaja one <ul>, wiec latwo wyrzucic
+        //    int iInd;
+        //    string sTmp = "";
 
-            // pozbywam sie potrzebnego </ul>
-            iInd = sPage.LastIndexOf("</ul>", StringComparison.Ordinal);
-            if (iInd > 0)
-                sPage = sPage.Substring(0, iInd - 1);
+        //    // pozbywam sie potrzebnego </ul>
+        //    iInd = sPage.LastIndexOf("</ul>", StringComparison.Ordinal);
+        //    if (iInd > 0)
+        //        sPage = sPage.Substring(0, iInd - 1);
 
-            iInd = sPage.IndexOf("</ul>", StringComparison.Ordinal);
-            // ale jesli "</ul></li> to jest ok... - wersja FR tej funkcji!
-            while (iInd > 0)
-            {
-                sTmp = sTmp + sPage.Substring(0, iInd - 1);
-                sPage = sPage.Substring(iInd);
-                iInd = sPage.IndexOf("<ul>", StringComparison.Ordinal);
-                if (iInd > 0)
-                {
-                    sPage = sPage.Substring(iInd + 4);
-                    iInd = sPage.IndexOf("</ul>", StringComparison.Ordinal);
-                }
-            }
+        //    iInd = sPage.IndexOf("</ul>", StringComparison.Ordinal);
+        //    // ale jesli "</ul></li> to jest ok... - wersja FR tej funkcji!
+        //    while (iInd > 0)
+        //    {
+        //        sTmp = sTmp + sPage.Substring(0, iInd - 1);
+        //        sPage = sPage.Substring(iInd);
+        //        iInd = sPage.IndexOf("<ul>", StringComparison.Ordinal);
+        //        if (iInd > 0)
+        //        {
+        //            sPage = sPage.Substring(iInd + 4);
+        //            iInd = sPage.IndexOf("</ul>", StringComparison.Ordinal);
+        //        }
+        //    }
 
-            sTmp = sTmp + sPage;
+        //    sTmp = sTmp + sPage;
 
-            return sTmp + "</ul>";
-        }
+        //    return sTmp + "</ul>";
+        //}
 
         private static string WytnijObrazkiFR(string sPage)
         {
@@ -264,13 +304,14 @@ namespace Anniversaries
             TYPXML.XmlNodeList oNodes1 = oRoot1.SelectNodes("/root/ul/li");
 
             // moze byc: <root><ul><li><ul><li> - tego glebiej nie ruszac!
-#if NETFX_CORE
+            
+//#if NETFX_CORE
             foreach (TYPXML.IXmlNode oNode in oNodes1)
-                sResult = sResult + "\n" + oNode.GetXml();
-#else
-            foreach (TYPXML.XmlNode oNode in oNodes1)
-                sResult = sResult + "\n" + oNode.OuterXml.Trim();
-#endif
+//#else
+//            foreach (TYPXML.XmlNode oNode in oNodes1)
+//#endif
+                sResult = sResult + "\n" + oNode.GetXml().Trim();
+//            sResult = sResult + "\n" + oNode.OuterXml.Trim();
 
             return "<ul>" + sResult + "</ul>";
         }
@@ -280,7 +321,7 @@ namespace Anniversaries
         /// </summary>
         private static int Li2Rok(string sTxt)
         {
-            int Li2RokRet = default(int);
+            int Li2RokRet;
             int iRok = 0;
             int iInd, iInd1, iInd2, iInd3;
             sTxt = sTxt.Trim();    // " 422 -" wydarzenia na swiecie pl.wikipedia
@@ -288,7 +329,7 @@ namespace Anniversaries
             iInd1 = sTxt.IndexOf(" ", StringComparison.Ordinal);
             iInd2 = sTxt.IndexOf(":", StringComparison.Ordinal); // przy <li>rok:<ul> (wersja PL)
             iInd3 = sTxt.IndexOf((char)160); // rosyjskojezyczna ma ROK<160><kreska><spacja>
-            iInd = 0;
+            // iInd = 0;
 
             if (iInd1 == -1)
                 iInd1 = 99;
@@ -348,19 +389,19 @@ namespace Anniversaries
             TYPXML.XmlNodeList oNodes1 = oRoot1.SelectNodes("/root/*");
 
             // moze byc: <root><ul><li><ul><li> ALBO H3 ALBO <div> (obrazek)
-#if NETFX_CORE
+//#if NETFX_CORE
             foreach (TYPXML.IXmlNode oNode in oNodes1)
             {
-                if ((oNode.NodeName == "ul" && (oNode.Attributes.Count < 1 || oNode.Attributes.Item(0).NodeName != "class")) | (oNode.NodeName == "h3"))
+                if ((oNode.NodeName == "ul" && (oNode.Attributes.Count < 1 || oNode.Attributes.ElementAt(0).NodeName != "class")) | (oNode.NodeName == "h3"))
+//#else
+//            foreach (TYPXML.XmlNode oNode in oNodes1)
+//            {
+//                if ((oNode.Name == "ul" && (oNode.Attributes.Count < 1 || oNode.Attributes.Item(0).Name != "class")) | (oNode.Name == "h3"))
+//#endif            
                     sResult = sResult + oNode.GetXml().Trim();
             }
-#else
-            foreach (TYPXML.XmlNode oNode in oNodes1)
-            {
-                if ((oNode.Name == "ul" && (oNode.Attributes.Count < 1 || oNode.Attributes.Item(0).Name != "class")) | (oNode.Name == "h3"))
-                    sResult = sResult + oNode.OuterXml.Trim();
-            }
-#endif            
+            //        sResult = sResult + oNode.OuterXml.Trim();
+            //}
 
             sResult = sResult.Replace("</ul><ul>", "");   // miejsca po obrazkach
             return SplitAndSort(sResult);
@@ -368,13 +409,13 @@ namespace Anniversaries
 
         private string SplitAndSort(string sTxtIn)
         {
-            string SplitAndSortRet = default(string);
+            string SplitAndSortRet;
             // podziel na kawalki wedle H3, i scal je potem w jeden - od H3 do H3 jest juz posortowane
             // wejscie: <ul> ... </ul>, po drodze </ul><h3><ul>, moga byc obrazki..
 
-            int iInd = 0;
+            int iInd;
             string sTxtOut = "";
-            string sTmp = default(string);
+            string sTmp;
 
             iInd = sTxtIn.IndexOf("<h3", StringComparison.Ordinal);
             while (iInd > 0)
@@ -478,13 +519,13 @@ namespace Anniversaries
             int i1 = 0;
             int i2 = 0;
 
-#if NETFX_CORE
+//#if NETFX_CORE
             TYPXML.IXmlNode oNode1 = oNodes1.ElementAt(i1);  // SDK 1803 - nie zna typu? dopiero po rebuild zna
             TYPXML.IXmlNode oNode2 = oNodes2.ElementAt(i2);  // SDK 1803 - nie zna typu? j.w.
-#else
-            TYPXML.XmlNode oNode1 = oNodes1.Item(i1);
-            TYPXML.XmlNode oNode2 = oNodes2.Item(i2);
-#endif            
+//#else
+//            TYPXML.XmlNode oNode1 = oNodes1.Item(i1);
+//            TYPXML.XmlNode oNode2 = oNodes2.Item(i2);
+//#endif            
 
             int iRok1 = Li2Rok(oNode1.InnerText);
             int iRok2 = Li2Rok(oNode2.InnerText);
@@ -494,37 +535,21 @@ namespace Anniversaries
             {
                 if (iRok1 < iRok2)
                 {
-#if NETFX_CORE
                     sResult = sResult + "\n" + PoprawRok(oNode1.GetXml());
-#else
-                    sResult = sResult + "\n" + PoprawRok(oNode1.OuterXml);
-#endif            
                     i1 = i1 + 1;
                     if (i1 < oNodes1.Count)
                     {
-#if NETFX_CORE
                         oNode1 = oNodes1.ElementAt(i1);
-#else
-                        oNode1 = oNodes1.Item(i1);
-#endif            
                         iRok1 = Li2Rok(oNode1.InnerText);
                     }
                 }
                 else
                 {
-#if NETFX_CORE
                     sResult = sResult + "\n" + PoprawRok(oNode2.GetXml());
-#else
-                    sResult = sResult + "\n" + PoprawRok(oNode2.OuterXml);
-#endif            
                     i2 = i2 + 1;
                     if (i2 < oNodes2.Count)
                     {
-#if NETFX_CORE
                         oNode2 = oNodes2.ElementAt(i2);
-#else
-                        oNode2 = oNodes2.Item(i2);
-#endif            
                         iRok2 = Li2Rok(oNode2.InnerText);
                     }
                 }
@@ -532,25 +557,15 @@ namespace Anniversaries
 
             while (i1 < oNodes1.Count)
             {
-#if NETFX_CORE
                 oNode1 = oNodes1.ElementAt(i1);
                 sResult = sResult + "\n" + PoprawRok(oNode1.GetXml());
-#else
-                oNode1 = oNodes1.Item(i1);
-                sResult = sResult + "\n" + PoprawRok(oNode1.OuterXml);
-#endif            
                 i1 = i1 + 1;
             }
 
             while (i2 < oNodes2.Count)
             {
-#if NETFX_CORE
                 oNode2 = oNodes2.ElementAt(i2);
                 sResult = sResult + "\n" + PoprawRok(oNode2.GetXml());
-#else
-                oNode2 = oNodes2.Item(i2);
-                sResult = sResult + "\n" + PoprawRok(oNode2.OuterXml);
-#endif            
                 i2 = i2 + 1;
             }
 
@@ -564,7 +579,7 @@ namespace Anniversaries
         /// </summary>
         private static string DodajPelnyLink(string sPage, string sLang)
         {
-            string DodajPelnyLinkRet = default(string);
+            string DodajPelnyLinkRet;
             string sTmp = sPage;
             sTmp = sTmp.Replace("\"/wiki/", "\"https://" + sLang + ".wikipedia.org/wiki/");
             DodajPelnyLinkRet = sTmp;
@@ -585,7 +600,7 @@ namespace Anniversaries
             mCurrLang = sUrl;
 
             string sTabs;
-            sTabs = pkar.GetSettingsString("EnabledTabs", "EBD");
+            sTabs = p.k.GetSettingsString("EnabledTabs", "EBD");
 
             switch (sUrl)
             {
@@ -700,8 +715,8 @@ namespace Anniversaries
         {
             List<string> lList = new List<string>();     // SDK 1803 - problem z typem?
 
-            int iInd = default(int);
-            string sTmp = default(string);
+            int iInd;
+            string sTmp;
             string[] aArr;   // było Array, SDK 1803 - nie zna typu dla sLang, zmieniam na String()
             aArr = sForLangs.Split(' ');
             foreach (string sLang in aArr)
@@ -724,11 +739,11 @@ namespace Anniversaries
         { // UNO NIE MA windows.web - migracja do System.Net.Http
             System.Net.Http.HttpClient oHttp = new System.Net.Http.HttpClient();
             Uri oUri = new Uri(sUrl);
-            System.Net.Http.HttpResponseMessage oResp = new System.Net.Http.HttpResponseMessage();
+            System.Net.Http.HttpResponseMessage oResp;// = new System.Net.Http.HttpResponseMessage();
             oResp = await oHttp.GetAsync(oUri).ConfigureAwait(true);
             if (!oResp.IsSuccessStatusCode)
             {
-                await pkar.DialogBox("GetHtmlPage error, URL=" + sUrl).ConfigureAwait(true);
+                await p.k.DialogBoxAsync("GetHtmlPage error, URL=" + sUrl).ConfigureAwait(true);
                 //Windows.UI.Popups.MessageDialog oDlg;
                 //oDlg = new Windows.UI.Popups.MessageDialog("GetHtmlPage error, URL=" + sUrl);
                 //oDlg.Title = "ERROR";
@@ -765,7 +780,7 @@ namespace Anniversaries
             //}
 
 
-            string sUrl = "";
+            string sUrl;
 
             sUrl = "https://en.wikipedia.org/wiki/" + MonthNo2EnName(mDate.Month) + "_" + mDate.Day.ToString(System.Globalization.CultureInfo.InvariantCulture);
             mEvents = "";
@@ -776,7 +791,7 @@ namespace Anniversaries
             
             string sTxt = await ReadOneLang(sUrl, mPreferredLang).ConfigureAwait(true);
 
-            sUrl = pkar.GetSettingsString("EnabledLanguages", "pl de fr es ru");
+            sUrl = p.k.GetSettingsString("EnabledLanguages", "pl de fr es ru");
             List<string> lList = ExtractLangLinks(sUrl, sTxt);
 
             uiProgBar.Maximum = 1 + lList.Count;
@@ -819,12 +834,12 @@ namespace Anniversaries
             tbDzien.Text = mDate.ToString("d MMMM", System.Globalization.CultureInfo.CurrentCulture);  // .Day.ToString & " " & MonthNo2PlName(mDate.Month)
         }
 
-        private static string MetaViewport()
-        {// kopia z Brewiarz
-            double dScale = pkar.GetSettingsInt("fontSize", 100);   // skalowanie - w Brewiarz jest, a tu nie
-            string sScale = "initial-scale=" + dScale.ToString("0.##");
-            return "<meta name=\"viewport\" content=\"width=device-width, " + sScale + "\">";
-        }
+        //private static string MetaViewport()
+        //{// kopia z Brewiarz
+        //    double dScale = p.k.GetSettingsInt("fontSize", 100);   // skalowanie - w Brewiarz jest, a tu nie
+        //    string sScale = "initial-scale=" + dScale.ToString("0.##");
+        //    return "<meta name=\"viewport\" content=\"width=device-width, " + sScale + "\">";
+        //}
 
         private void SetWebView(string sHtml, string sHead)
         {
@@ -848,11 +863,11 @@ namespace Anniversaries
             //bDeathAndroBar.IsChecked = bDea;
 
             // oraz z menu
-#if NETFX_CORE
+//#if NETFX_CORE
             uiSelEvent.IsChecked = bEv;
             uiSelBirth.IsChecked = bBir;
             uiSelDeath.IsChecked = bDea;
-#endif 
+//#endif 
         }
 
             private void bEvent_Click(object sender, RoutedEventArgs e)
@@ -882,17 +897,21 @@ namespace Anniversaries
         private void UwpAndro()
         { // przełączanie aktywnego w Android (AppBar) i w UWP (BottomAppBar-CommandBar)
           // pierwotna wersja miała #if, ale tak chyba jest lepiej
+//#if !__WASM__ && !__IOS__
             uiDay.Date = mDate;
+//#endif
+
 #if NETFX_CORE
+            // nie wiem czemu pokazywane jako nieistniejące dla Droid - skoro powinno być?
             uiDaySec.Date = mDate;
-#endif 
+#endif
         }
 
         private int CmdBarWidth()
         {
 
             int iIconWidth, iGridWidth;
-            bool bUwp = pkar.GetPlatform("uwp");
+            bool bUwp = p.k.GetPlatform("uwp");
 
             //if (pkar.GetPlatform("uwp"))
                 iIconWidth = (int)bRefresh.ActualWidth; // zakładam że to będzie zawsze widoczne, czyli dobrze policzy
@@ -939,8 +958,10 @@ namespace Anniversaries
                     tbDzien.Visibility = Visibility.Visible;
                     uiBarSeparat1.Visibility = Visibility.Visible;
                     bRefresh.Visibility = Visibility.Visible;
-                    uiKalend.Visibility = Visibility.Visible;
-                    uiBarSeparat2.Visibility = Visibility.Visible;
+//#if !__WASM__
+                uiKalend.Visibility = Visibility.Visible;
+//#endif
+                uiBarSeparat2.Visibility = Visibility.Visible;
                     uiSelektorStrony.Visibility = Visibility.Collapsed;
                     bEvent.Visibility = Visibility.Visible;
                     // bHolid.Visibility = Visibility.Visible;
@@ -952,13 +973,15 @@ namespace Anniversaries
 
                     // secondary commands
 
+//#if !__WASM__
                     uiKalendSec.Visibility = Visibility.Collapsed;
+//#endif
                     uiGoSettSec.Visibility = Visibility.Collapsed;
                     uiGoInfoSec.Visibility = Visibility.Collapsed;
                     // dla Android: obsluga guzika z dalszymi komendami
 #if !NETFX_CORE
                     uiAndroSec.Visibility = Visibility.Collapsed;
-#endif 
+#endif
 
                     return;
                 }
@@ -972,7 +995,9 @@ namespace Anniversaries
                 tbDzien.Visibility = Visibility.Visible;
                     uiBarSeparat1.Visibility = Visibility.Collapsed;
                     bRefresh.Visibility = Visibility.Visible;
+//#if !__WASM__
                     uiKalend.Visibility = Visibility.Visible;
+//#endif 
                     uiBarSeparat2.Visibility = Visibility.Visible;
                     uiSelektorStrony.Visibility = Visibility.Collapsed;
                     bEvent.Visibility = Visibility.Visible;
@@ -984,13 +1009,15 @@ namespace Anniversaries
                     uiGoInfo.Visibility = Visibility.Visible;
 
                     // secondary commands
+//#if !__WASM__
                     uiKalendSec.Visibility = Visibility.Collapsed;
+//#endif 
                     uiGoSettSec.Visibility = Visibility.Collapsed;
                     uiGoInfoSec.Visibility = Visibility.Collapsed;
                     // dla Android: obsluga guzika z dalszymi komendami
 #if !NETFX_CORE
                     uiAndroSec.Visibility = Visibility.Collapsed;
-#endif 
+#endif
 
                     return;
                 }
@@ -1004,7 +1031,9 @@ namespace Anniversaries
                 tbDzien.Visibility = Visibility.Visible;
                 uiBarSeparat1.Visibility = Visibility.Collapsed;
                 bRefresh.Visibility = Visibility.Visible;
+//#if !__WASM__
                 uiKalend.Visibility = Visibility.Visible;
+//#endif 
                 uiBarSeparat2.Visibility = Visibility.Visible;
                 uiSelektorStrony.Visibility = Visibility.Collapsed;
                 bEvent.Visibility = Visibility.Visible;
@@ -1016,7 +1045,9 @@ namespace Anniversaries
                 uiGoInfo.Visibility = Visibility.Collapsed;
 
                 // secondary commands
+//#if !__WASM__
                 uiKalendSec.Visibility = Visibility.Collapsed;
+//#endif 
                 uiGoSettSec.Visibility = Visibility.Visible;
                 uiGoInfoSec.Visibility = Visibility.Visible;
                 // dla Android: obsluga guzika z dalszymi komendami
@@ -1037,7 +1068,9 @@ namespace Anniversaries
                     tbDzien.Visibility = Visibility.Visible;
                     uiBarSeparat1.Visibility = Visibility.Collapsed;
                     bRefresh.Visibility = Visibility.Visible;
+//#if !__WASM__
                     uiKalend.Visibility = Visibility.Collapsed;
+//#endif 
                     uiBarSeparat2.Visibility = Visibility.Visible;
                     uiSelektorStrony.Visibility = Visibility.Collapsed;
                     bEvent.Visibility = Visibility.Visible;
@@ -1049,13 +1082,15 @@ namespace Anniversaries
                     uiGoInfo.Visibility = Visibility.Collapsed;
 
                     // secondary commands
+//#if !__WASM__
                     uiKalendSec.Visibility = Visibility.Visible;
+//#endif
                     uiGoSettSec.Visibility = Visibility.Visible;
                     uiGoInfoSec.Visibility = Visibility.Visible;
                     // dla Android: obsluga guzika z dalszymi komendami
 #if !NETFX_CORE
                     uiAndroSec.Visibility = Visibility.Visible;
-#endif 
+#endif
 
                     return;
                 }
@@ -1066,7 +1101,9 @@ namespace Anniversaries
                 tbDzien.Visibility = Visibility.Visible;
                 uiBarSeparat1.Visibility = Visibility.Collapsed;
                 bRefresh.Visibility = Visibility.Visible;
+//#if !__WASM__
                 uiKalend.Visibility = Visibility.Collapsed;
+//#endif
                 uiBarSeparat2.Visibility = Visibility.Collapsed;
                 uiSelektorStrony.Visibility = Visibility.Visible;
                 bEvent.Visibility = Visibility.Collapsed;
@@ -1078,7 +1115,9 @@ namespace Anniversaries
                 uiGoInfo.Visibility = Visibility.Collapsed;
 
                 // secondary commands
+//#if !__WASM__
                 uiKalendSec.Visibility = Visibility.Visible;
+//#endif 
                 uiGoSettSec.Visibility = Visibility.Visible;
                 uiGoInfoSec.Visibility = Visibility.Visible;
 #if !NETFX_CORE
@@ -1090,7 +1129,7 @@ namespace Anniversaries
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
             string sTmp;
-            sTmp = pkar.GetSettingsString("EnabledTabs", "EBD");
+            sTmp = p.k.GetSettingsString("EnabledTabs", "EBD");
 
             bEvent.IsEnabled = (sTmp.IndexOf("E",StringComparison.Ordinal ) > -1);
             bBirth.IsEnabled = (sTmp.IndexOf("B", StringComparison.Ordinal) > -1);
@@ -1103,7 +1142,7 @@ namespace Anniversaries
             UwpAndro();             // Uno bug override - własny AppBar
             DopasowanieCmdBar();    // liczba ikonek a szerokość 
 
-            if (pkar.GetSettingsBool("AutoLoad")) bRead_Click(null, null);
+            if (p.k.GetSettingsBool("AutoLoad")) bRead_Click(null, null);
 
             //uiCmdBar.Padding = new Thickness(0, 0, 0, 50);
             //uiCmdBar.MinHeight = 100;
@@ -1120,15 +1159,24 @@ namespace Anniversaries
 
             args.Cancel = true;
 
-            if (!pkar.GetSettingsBool("LinksActive"))
+            if (!p.k.GetSettingsBool("LinksActive"))
                 return;
 #pragma warning disable CS4014
             Windows.System.Launcher.LaunchUriAsync(args.Uri);
 #pragma warning restore
         }
 
+//#if NETFX_CORE || __ANDROID__ || __IOS__
+
+//#if NETFX_CORE
         private void uiDay_Changed(CalendarDatePicker sender, CalendarDatePickerDateChangedEventArgs args)
         {
+//#else
+//        private void uiDay_Changed(object sender1, CalendarDatePickerDateChangedEventArgs args)
+//        {
+//            CalendarDatePicker sender;
+//            sender = sender1 as CalendarDatePicker;
+//#endif
             // 11/27/2017 9:11:28 PM  1.5.1.6  Console     Microsoft-Xbox One  10.0.16299.4037 
             // System::Nullable$1_System::DateTimeOffset_.get_Value
             // Anniversaries::MainPage.uiDay_Changed
@@ -1137,21 +1185,38 @@ namespace Anniversaries
                 if (sender.Date.HasValue)
                     mDate = sender.Date.Value;
         }
+//#else
+//        // Uno bug override
+//        private void uiDayAndro_Changed(object sender, DatePickerValueChangedEventArgs args)
+//        {// wizard daje tu Object sender, a przy Calendar.. - dokładny typ sendera.
+//            DatePicker oPicker;
+//            oPicker = sender as DatePicker;
+//            if (oPicker is null) return;
 
-        // Uno bug override
-        private void uiDayAndro_Changed(object sender, DatePickerValueChangedEventArgs args)
-        {// wizard daje tu Object sender, a przy Calendar.. - dokładny typ sendera.
-            DatePicker oPicker;
-            oPicker = sender as DatePicker;
-            if (oPicker is null) return;
+//            if (oPicker.Date != null)
+//                mDate = oPicker.Date;
+//        }
+//#endif
 
-            if (oPicker.Date != null)
-                mDate = oPicker.Date;
-        }
-
-        private void uiGrid_Resized(object sender, SizeChangedEventArgs e)
+            private void uiGrid_Resized(object sender, SizeChangedEventArgs e)
         {
             DopasowanieCmdBar();
         }
     }
 }
+
+// podmiana API SystemXml na API Windows.Data.Xml.Dom, uproszczenie #if
+// niepotrzebne, bo w 3.8.6 jest już Windows.XML
+//static partial class Extensions
+//{
+//    public static string GetXml(this System.Xml.XmlNode oNode)
+//    {
+//        return oNode.OuterXml;
+//    }
+
+//    public static System.Xml.XmlNode ElementAt(this System.Xml.XmlNodeList oNodes, int iIndex)
+//    {
+//        return oNodes.Item(iIndex);
+//    }
+
+//}

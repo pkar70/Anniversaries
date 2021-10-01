@@ -44,7 +44,7 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <PRIResource Include="$(MSBuildThisFileDirectory)Strings\en\Resources.resw" />
+    <PRIResource Include="$(MSBuildThisFileDirectory)Strings\en-US\Resources.resw" />
     <PRIResource Include="$(MSBuildThisFileDirectory)Strings\pl\Resources.resw" />
   </ItemGroup>
 </Project>

@@ -24,12 +24,6 @@ namespace Anniversaries
 
         private void Page_Load(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
-#if NETFX_CORE
-#else
-            uiBarRateIt.Visibility = Windows.UI.Xaml.Visibility.Collapsed;
-            uiBarSeparat.Visibility = Windows.UI.Xaml.Visibility.Collapsed;
-            uiInfoPort.Visibility = Windows.UI.Xaml.Visibility.Visible;
-#endif
 
             string sTmp;
 
@@ -43,10 +37,14 @@ namespace Anniversaries
             
         }
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously - dla Android
         private async void bRateIt_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
-        {// nie wejdzie tu przy !UWP, bo wygasza wtedy Button 
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+        {// nie wejdzie tu przy !UWP, bo wygasza wtedy Button; #if żeby nie było warninga
+#if NETFX_CORE
             Uri sUri = new Uri("ms-windows-store://review/?PFN=" + Windows.ApplicationModel.Package.Current.Id.FamilyName);
             await Windows.System.Launcher.LaunchUriAsync(sUri);
+#endif
         }
     }
 

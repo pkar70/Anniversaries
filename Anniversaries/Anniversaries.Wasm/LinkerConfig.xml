@@ -1,5 +1,5 @@
 ﻿<linker>
-  <assembly fullname="Anniversaries.Wasm" />
+  <assembly fullname="Anniversaries" />
   <assembly fullname="Uno.UI" />
 
   <assembly fullname="System.Core">

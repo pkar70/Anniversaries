@@ -23,10 +23,14 @@ namespace Anniversaries.Droid
     public class Application : Windows.UI.Xaml.NativeApplication
     {
         public Application(IntPtr javaReference, JniHandleOwnership transfer)
-            : base(new App(), javaReference, transfer)
+           //  : base(new App(), javaReference, transfer)    // linia dla starszej wersji
+           : base(() => new App(), javaReference, transfer) // linia dla nowszej wersji
         {
             ConfigureUniversalImageLoader();
-            Uno.UI.FeatureConfiguration.Style.UseUWPDefaultStyles = false; // PROBA DODANIA - nieudana; 
+            //Uno.UI.FeatureConfiguration.Style.UseUWPDefaultStyles = false; // PROBA DODANIA - nieudana; 
+
+            // wymagane dla dzia³ania CalendarDatePicker, obecnego w Uno 3.8.6
+            Uno.UI.FeatureConfiguration.Popup.UseNativePopup = false;
         }
 
         private void ConfigureUniversalImageLoader()

@@ -26,18 +26,18 @@ namespace Anniversaries
             if (uiSetLangEs.IsOn) sTmp = sTmp + "es ";
             if (uiSetLangRu.IsOn) sTmp = sTmp + "ru ";
             if (uiSetLangDe.IsOn) sTmp = sTmp + "de ";
-            pkar.SetSettingsString("EnabledLanguages", sTmp);
+            p.k.SetSettingsString("EnabledLanguages", sTmp);
 
             sTmp = "";
             if (uiSetTabE.IsOn) sTmp = sTmp + "E";
             if (uiSetTabB.IsOn) sTmp = sTmp + "B";
             if (uiSetTabD.IsOn) sTmp = sTmp + "D";
             //if (uiSetTabH.IsOn) sTmp = sTmp + "H";
-            pkar.SetSettingsString("EnabledTabs", sTmp);
+            p.k.SetSettingsString("EnabledTabs", sTmp);
 
-            pkar.SetSettingsBool("LinksActive", uiSetLinksActive);
-            pkar.SetSettingsBool("AutoLoad", uiAutoLoad);
-            pkar.SetSettingsBool("localSetup", true);   // na wszelki wypadek - żeby nie zassał z OneDrive
+            p.k.SetSettingsBool("LinksActive", uiSetLinksActive);
+            p.k.SetSettingsBool("AutoLoad", uiAutoLoad);
+            p.k.SetSettingsBool("localSetup", true);   // na wszelki wypadek - żeby nie zassał z OneDrive
             
             this.Frame.Navigate(typeof(MainPage));
         }
@@ -45,9 +45,9 @@ namespace Anniversaries
         private void SetupPage_Loaded(object sender, RoutedEventArgs e)
         {
             string sTmp;
-            sTmp = pkar.GetSettingsString("EnabledLanguages", "pl de fr es ru");
+            sTmp = p.k.GetSettingsString("EnabledLanguages", "pl de fr es ru");
 
-            uiVersion.Text = "v. " + pkar.GetAppVers();
+            uiVersion.Text = "v. " + p.k.GetAppVers();
 
             uiSetLangEn.IsOn = true;
             uiSetLangPl.IsOn = (sTmp.IndexOf("pl",StringComparison.Ordinal) > -1);
@@ -56,18 +56,19 @@ namespace Anniversaries
             uiSetLangRu.IsOn = (sTmp.IndexOf("ru", StringComparison.Ordinal) > -1);
             uiSetLangDe.IsOn = (sTmp.IndexOf("de", StringComparison.Ordinal) > -1);
 
-            sTmp = pkar.GetSettingsString("EnabledTabs", "EBD");
+            sTmp = p.k.GetSettingsString("EnabledTabs", "EBD");
 
             uiSetTabE.IsOn = (sTmp.IndexOf("E", StringComparison.Ordinal) > -1);
             uiSetTabB.IsOn = (sTmp.IndexOf("B", StringComparison.Ordinal) > -1);
             uiSetTabD.IsOn = (sTmp.IndexOf("D", StringComparison.Ordinal) > -1);
             //uiSetTabH.IsOn = (sTmp.IndexOf("H", StringComparison.Ordinal) > -1);
 
-            uiSetLinksActive.IsOn = pkar.GetSettingsBool("LinksActive");
-            pkar.GetSettingsBool(uiAutoLoad, "AutoLoad");
+            uiSetLinksActive.IsOn = p.k.GetSettingsBool("LinksActive");
+            p.k.GetSettingsBool(uiAutoLoad, "AutoLoad");
 
-            if (!pkar.GetPlatform("uwp"))
-                uiSeeFeedback.Visibility = Visibility.Collapsed;
+            // wyłączane w XAML win:Text
+            //if (!pkar.GetPlatform("uwp"))
+            //    uiSeeFeedback.Visibility = Visibility.Collapsed;
         }
 
     }
