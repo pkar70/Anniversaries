@@ -5,6 +5,22 @@ ANDRO UNO BUG:
 * AppBar: zepsute ikonki [workaround], niepotrzebny button rozwijania ze złą ikonką (a i tak nie działa)
 * CommandBar: pokazuje tylko SecondaryCommands (brak obsługi innych niż BitmapIcon)
 
+STORE 2112
+
+2021.12.28
+* zmiana kodu SetLang i SetTab - teraz zmiana potrzebna tylko w Setup.Xaml oraz w MainPage.ReadLang (nie trzeba zmnian w Setup.Xaml.vb)
+* próba dodania HEbrew - udana :)
+* więc jeszcze arabski oraz japoński, gruziński. Plus chiński i koreanski (koreanski ma takze urodziny postaci fikcyjnych :) ) 
+* przeczyszczenie plików z tego, co było starą wersją (XML oraz ręczne cięcie HTMLa; i różne zaszłości)
+* bugfix: nie przejmowało NavigationStarting, więc nie blokowało (pewnie odkąd przeszło z VB na C#)
+
+2021.12.27
+* Uno 4.0.11, tylko dla rekompilacji i kontroli, ale sprawdzam zachowanie także na UWP - są zmiany struktury stron...
+* przerabiam na używanie XmlDocument - ale to nie potrafi zeżreć znaków z innych niż PL i EN, więc:
+* dodaję HtmlAgilityPack, i mam HtmlDocument
+* przeróbka struktury na bardziej uniwersalną (wygodniejsze usuwanie zbędnych <tag>)
+* dodaję Ukraina oraz Grecja (hebrajski byłby fajny, ale on jest pisany od drugiej strony!)
+
 2021.06.18
 * Uno 3.8.6, już jest całość w Uno.Master
 * dodaję Extensions dla XML, żeby zmniejszyć liczbę #if - e, lipa, niepotrzebne, bo wszak w 3.8.6 jest już Windows.XML
@@ -106,28 +122,18 @@ using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Navigation;
+//using Windows.UI.Xaml.Controls.Primitives;
+//using Windows.UI.Xaml.Data;
+//using Windows.UI.Xaml.Input;
+//using Windows.UI.Xaml.Media;
+//using Windows.UI.Xaml.Navigation;
 
-//#if NETFX_CORE
-using TYPXML = Windows.Data.Xml.Dom;
-//#else
-//using TYPXML = System.Xml;
-//#endif
+//using TYPXML = Windows.Data.Xml.Dom;
 
-
-
-
-// The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
 namespace Anniversaries
 {
-    /// <summary>
-    /// An empty page that can be used on its own or navigated to within a Frame.
-    /// </summary>
+
     public partial class MainPage : Windows.UI.Xaml.Controls.Page
     {
         public MainPage()
@@ -136,17 +142,11 @@ namespace Anniversaries
         }
 
 
-        private static string mEvents = "";
-        private static string mHolid = "";
-        private static string mBirths = "";
-        private static string mDeaths = "";
-        // private string mObceMiesiace = "";
-        // zmienne w Setup dostepne
+        private static HtmlAgilityPack.HtmlDocument mEvents = new HtmlAgilityPack.HtmlDocument();
+        private static HtmlAgilityPack.HtmlDocument mBirths = new HtmlAgilityPack.HtmlDocument();
+        private static HtmlAgilityPack.HtmlDocument mDeaths = new HtmlAgilityPack.HtmlDocument();
+
         private static DateTimeOffset mDate;
-        // Dim mObceJezyki As String = "pl de fr es ru"
-        private static string mPreferredLang = "pl";
-        private static string mCurrLang = "";
-        private static string mCurrPart = "";
 
         private void bSetup_Click(object sender, RoutedEventArgs e)
         {
@@ -193,127 +193,149 @@ namespace Anniversaries
 
         }
 
-        //private static string MonthNo2PlName(int iMonth)
-        //{
-        //    switch (iMonth)
-        //    {
-        //        case 1:
-        //            return "stycznia";
-        //        case 2:
-        //            return "lutego";
-        //        case 3:
-        //            return "marca";
-        //        case 4:
-        //            return "kwietnia";
-        //        case 5:
-        //            return "maja";
-        //        case 6:
-        //            return "czerwca";
-        //        case 7:
-        //            return "lipca";
-        //        case 8:
-        //            return "sierpnia";
-        //        case 9:
-        //            return "września";
-        //        case 10:
-        //            return "października";
-        //        case 11:
-        //            return "listopada";
-        //        case 12:
-        //            return "grudnia";
-        //        default:
-        //            return "stycznia";
-        //    }
-        //}
+
 
         /// <summary>
-        /// Wycięcie z _sPage_ tekstu od _sFrom_ do początku następnego h2
+        /// Wycięcie z htmlDoc fragmentu od <h2> zawierającego _sFrom_ (np. "id=wydarzenia") do początku następnego h2
         /// </summary>
-        private string WyciagnijDane(string sPage, string sFrom)
+        private HtmlAgilityPack.HtmlDocument WyciagnijSekcjeH2(HtmlAgilityPack.HtmlDocument htmlDoc, string sFrom, string sLang)
         {
-            mCurrPart = sFrom;
+            p.k.DebugOut("WyciagnijSekcjeH2('" + sFrom);
+            // wszystkie H2 proszę przeiterować
+            // w każdym z nich, w inner html, sprawdzam istnienie sFrom
 
-            int iInd;
-            string sTxt;
+            foreach(HtmlAgilityPack.HtmlNode oH2 in htmlDoc.DocumentNode.SelectNodes("//h2"))
+            {
+                if(oH2.InnerText.Contains(sFrom))
+                {
+                    // mam to! znaczy odpowiedni H2
+                    // sklejaj wszystkie outer aż do następnego H2
+                    string sRet = "";
+                    HtmlAgilityPack.HtmlNode oEntry = oH2.NextSibling;
+                    while(oEntry != null)
+                    {
+                        if (oEntry.Name == "h2")
+                        {
+                            var oRetXml = new HtmlAgilityPack.HtmlDocument();
+                            oRetXml.LoadHtml("<root>" + sRet + "</root>");
+                            //oRetXml.LoadXml(sRet);
+                            return oRetXml;
+                        }
 
-            iInd = sPage.IndexOf(sFrom, StringComparison.Ordinal);
-            if (iInd < 10)
-                return "";
-            sTxt = sPage.Substring(iInd);
-            iInd = sTxt.IndexOf("<ul>", StringComparison.Ordinal);
-            if (iInd < 10)
-                return "";
-            sTxt = sTxt.Substring(iInd);
-            iInd = sTxt.IndexOf("<h2", StringComparison.Ordinal);
-            if (iInd < 10)
-                return "";
-            sTxt = sTxt.Substring(0, iInd);
-            iInd = sTxt.LastIndexOf("</ul", StringComparison.Ordinal);
-            if (iInd < 10)
-                return "";
-            return sTxt.Substring(0, iInd + 5);
+
+                        bool bSkip = false;
+
+                        // pomijam puste
+                        if (oEntry.OuterHtml.Trim() == "") bSkip = true;
+
+                        // dla Ukrainy takie coś - mają pierwsze <p>, *TODO* tylko pierwsze <p> pomijać
+                        if (sLang =="uk" && oEntry.Name == "p") bSkip = true;
+
+                        if(oEntry.Name=="h4") bSkip = true; // dla DE
+                        if (oEntry.Name == "dl") bSkip = true; // dla RU
+
+                        if (!bSkip) sRet += oEntry.OuterHtml.Trim();
+                        
+                        oEntry = oEntry.NextSibling;
+                    }
+                }
+            }
+
+            return null;  // nie było takiego
         }
 
-        //private string WytnijObrazkiDE(string sPage)
-        //{
-        //    // wikipedia.de ma obrazki wklejone - ale przerywaja one <ul>, wiec latwo wyrzucic
-        //    int iInd;
-        //    string sTmp = "";
 
-        //    // pozbywam sie potrzebnego </ul>
-        //    iInd = sPage.LastIndexOf("</ul>", StringComparison.Ordinal);
-        //    if (iInd > 0)
-        //        sPage = sPage.Substring(0, iInd - 1);
-
-        //    iInd = sPage.IndexOf("</ul>", StringComparison.Ordinal);
-        //    // ale jesli "</ul></li> to jest ok... - wersja FR tej funkcji!
-        //    while (iInd > 0)
-        //    {
-        //        sTmp = sTmp + sPage.Substring(0, iInd - 1);
-        //        sPage = sPage.Substring(iInd);
-        //        iInd = sPage.IndexOf("<ul>", StringComparison.Ordinal);
-        //        if (iInd > 0)
-        //        {
-        //            sPage = sPage.Substring(iInd + 4);
-        //            iInd = sPage.IndexOf("</ul>", StringComparison.Ordinal);
-        //        }
-        //    }
-
-        //    sTmp = sTmp + sPage;
-
-        //    return sTmp + "</ul>";
-        //}
-
-        private static string WytnijObrazkiFR(string sPage)
+        private void UsunElementy(HtmlAgilityPack.HtmlDocument oDoc, string sTagName, string sTagAttr = "")
         {
-            // bardziej skomplikowane niz DE, bo są sublisty (znaczy runtime bardziej skomplikowany)
-            if (string.IsNullOrEmpty(sPage))
-                return "";    // żeby nie było <u></ul>
-            string sResult = "";
-            TYPXML.XmlDocument oDom1 = new TYPXML.XmlDocument();
-            sPage = "<root>" + sPage + "</root>";  // bo inaczej error ze tylko jeden root element moze byc
-            try
+            for (int iGuard = 100; iGuard > 0; iGuard--)
             {
-                oDom1.LoadXml(sPage);
+                bool bBreak = true;
+                var oNodes = oDoc.DocumentNode.SelectNodes("//" + sTagName);
+                if (oNodes != null)
+                {
+                    foreach (HtmlAgilityPack.HtmlNode oNode in oNodes)
+                    {
+                        if (sTagAttr == "" || oNode.OuterHtml.Contains(sTagAttr))
+                            oNode.ParentNode.RemoveChild(oNode);
+                        bBreak = false;
+                        break;
+                    }
+                }
+                if (bBreak) break;
             }
-            catch
-            {
-                return "<ul><li>0 ERROR loading sPage, WytnijObrazkiFR</li></ul>";
-            }
-            TYPXML.XmlElement oRoot1 = oDom1.DocumentElement;
-            TYPXML.XmlNodeList oNodes1 = oRoot1.SelectNodes("/root/ul/li");
+        }
 
-            // moze byc: <root><ul><li><ul><li> - tego glebiej nie ruszac!
+        /// <summary>
+        /// Wycięcie z htmlDoc fragmentu od <h2> zawierającego _sFrom_ (np. "id=wydarzenia") do początku następnego h2
+        /// Ma usunąć wszystkie niepotrzebne rzeczy.
+        /// jest to robione dla języka sLang (jakby były jakieś różnice)
+        /// </summary>
+        private HtmlAgilityPack.HtmlDocument WyciagnijDane(HtmlAgilityPack.HtmlDocument htmlDoc, string sFrom, string sLang)
+        {
+            //private TYPXML.XmlDocument WyciagnijDane(TYPXML.XmlDocument htmlDoc, string sFrom, string sLang)
+            p.k.DebugOut("WyciagnijDane(htmlDoc, '" + sFrom + "', '" + sLang);
+            var oH2 = WyciagnijSekcjeH2(htmlDoc, sFrom, sLang);
+            if (oH2 is null) return null;
+
+            // usuwamy obrazki: <div class="thumb tright"> oraz tleft
+            // dla: DE, FR, ES
+            UsunElementy(oH2, "div", "div class=\"thumb");
+
+            // usuwamy link do multimedia
+            // dla: PL
+            UsunElementy(oH2, "table", "infobox");
+
+
+            // nic nie robi dla:
+            // PL: (ale za to MergeSorted h2 świat i PL)
+            // dla EL: nic
+            // mogłoby być wcześniej, ale żaden problem spróbować usunąć
+            if (sLang == "pl" || sLang == "el")
+                return oH2;
+
+            // dla DE:
+            //  w wydarzeniach, H3 do MergeSorted, w pozostałych - do usunięcia
+            if (sLang == "de")
+            {
+                oH2 = SplitAndSort(oH2, "h3");
+            }
+
+
+            // usuwamy podrozdziały (h3)
+            // dla: EN, RU, UK
+            UsunElementy(oH2, "h3", "");
             
-//#if NETFX_CORE
-            foreach (TYPXML.IXmlNode oNode in oNodes1)
-//#else
-//            foreach (TYPXML.XmlNode oNode in oNodes1)
-//#endif
-                sResult = sResult + "\n" + oNode.GetXml().Trim();
-//            sResult = sResult + "\n" + oNode.OuterXml.Trim();
+            // pod-nagłówki h4 (DE)
+            UsunElementy(oH2, "h4", "");
 
-            return "<ul>" + sResult + "</ul>";
+            // usuwamy DL (RU)
+            UsunElementy(oH2, "dl", "");
+            // dziwne coś, także tylko dla RU
+            UsunElementy(oH2, "div", "hatnote");
+
+            // dla FR, PL w wydarzeniach sklejaj H2 - ale to się robi "piętro wyżej"
+
+            // usuń podział na <ul></ul><ul> (po tych podziałach h3)
+            string sXml = oH2.DocumentNode.OuterHtml;
+            sXml = sXml.Replace("\n", " ");
+            sXml = sXml.Replace("\r", " ");
+            sXml = sXml.Replace("  ", " ");
+            sXml = sXml.Replace("  ", " ");
+            sXml = sXml.Replace("  ", " ");
+            sXml = sXml.Replace("</ul> <ul>", "");
+            sXml = sXml.Replace("</ul><ul>", "");
+            oH2.LoadHtml(sXml);
+
+            return oH2;
+        }
+    
+
+
+        private static int IndexOfOr99(string sTxt, string sSubstring)
+        {
+            int iRet = sTxt.IndexOf(sSubstring, StringComparison.Ordinal);
+            if (iRet == -1) return 99;
+            return iRet;
         }
 
         /// <summary>
@@ -321,23 +343,19 @@ namespace Anniversaries
         /// </summary>
         private static int Li2Rok(string sTxt)
         {
-            int Li2RokRet;
             int iRok = 0;
-            int iInd, iInd1, iInd2, iInd3;
+            int iInd;
             sTxt = sTxt.Trim();    // " 422 -" wydarzenia na swiecie pl.wikipedia
 
-            iInd1 = sTxt.IndexOf(" ", StringComparison.Ordinal);
-            iInd2 = sTxt.IndexOf(":", StringComparison.Ordinal); // przy <li>rok:<ul> (wersja PL)
-            iInd3 = sTxt.IndexOf((char)160); // rosyjskojezyczna ma ROK<160><kreska><spacja>
-            // iInd = 0;
-
-            if (iInd1 == -1)
-                iInd1 = 99;
-            if (iInd2 == -1)
-                iInd2 = 99;
-            if (iInd3 == -1)
-                iInd3 = 99;
-            iInd = Math.Min(Math.Min(iInd1, iInd2), iInd3);
+            iInd = sTxt.IndexOf((char)160); // rosyjskojezyczna ma ROK<160><kreska><spacja>
+            if(iInd == -1) iInd = 99;
+            iInd = Math.Min(iInd, IndexOfOr99(sTxt, " "));
+            iInd = Math.Min(iInd, IndexOfOr99(sTxt, ":"));
+            iInd = Math.Min(iInd, IndexOfOr99(sTxt, "#"));
+            iInd = Math.Min(iInd, IndexOfOr99(sTxt, "&"));
+            iInd = Math.Min(iInd, IndexOfOr99(sTxt, "年"));  // japonski
+            iInd = Math.Min(iInd, IndexOfOr99(sTxt, "년"));  // koreanski
+            iInd = Math.Min(iInd, IndexOfOr99(sTxt, "年"));  // chinski
 
             if ((iInd > 0) & (iInd < 6))
             {
@@ -359,87 +377,40 @@ namespace Anniversaries
                 if (sTxt.IndexOf(" до н.", StringComparison.Ordinal) == 0)
                     iRok = -iRok;  // ru
             }
-            Li2RokRet = iRok;
-            return Li2RokRet;
+            return iRok;
         }
 
         /// <summary>
         /// podziel _sPage_ na kawałki wedle H3, i scal je potem w jeden - od H3 do H3 jest juz posortowane
         /// </summary>
-        private string PrepareAndSplitSort(string sPage)
+        private HtmlAgilityPack.HtmlDocument SplitAndSort(HtmlAgilityPack.HtmlDocument oDom, string sSplitTag)
         {
-            // wejscie: <ul> ... </ul>, po drodze </ul><h3><ul>, moga byc obrazki..
+            var oRetDoc = new HtmlAgilityPack.HtmlDocument();
 
-            string sResult = "";
-            TYPXML.XmlDocument oDom1 = new TYPXML.XmlDocument();
-
-            try
+            foreach ( var oNode in oDom.DocumentNode.SelectNodes("//" + sSplitTag))
             {
-                oDom1.LoadXml("<root>" + sPage + "</root>");
-                //oDom2 = System.Xml.Linq.XDocument.Load("<root>" + sPage + "</root>");
-            }
-            catch
-            {
-                return "<ul><li>0 ERROR loading sPage, SplitAndSort</li></ul>";
-            }
+                string sTmpDoc = ""; 
+                var oEntry = oNode.NextSibling;
+                while (oEntry != null)
+                {
+                    if (oEntry.Name == "h2" || oEntry.Name == sSplitTag) break;
 
-            TYPXML.XmlElement oRoot1 = oDom1.DocumentElement;
+                    if(oEntry.Name == "ul")
+                    {
+                        foreach (var oItem in oEntry.ChildNodes)
+                            sTmpDoc += oItem.OuterHtml;
+                    }
 
-            // dowolny na poziomie 1
-            TYPXML.XmlNodeList oNodes1 = oRoot1.SelectNodes("/root/*");
+                    oEntry = oEntry.NextSibling;
+                }
 
-            // moze byc: <root><ul><li><ul><li> ALBO H3 ALBO <div> (obrazek)
-//#if NETFX_CORE
-            foreach (TYPXML.IXmlNode oNode in oNodes1)
-            {
-                if ((oNode.NodeName == "ul" && (oNode.Attributes.Count < 1 || oNode.Attributes.ElementAt(0).NodeName != "class")) | (oNode.NodeName == "h3"))
-//#else
-//            foreach (TYPXML.XmlNode oNode in oNodes1)
-//            {
-//                if ((oNode.Name == "ul" && (oNode.Attributes.Count < 1 || oNode.Attributes.Item(0).Name != "class")) | (oNode.Name == "h3"))
-//#endif            
-                    sResult = sResult + oNode.GetXml().Trim();
-            }
-            //        sResult = sResult + oNode.OuterXml.Trim();
-            //}
+                var oTmpDoc = new HtmlAgilityPack.HtmlDocument();
+                oTmpDoc.LoadHtml("<root><ul>" + sTmpDoc + "</ul></root>");
+                oRetDoc = MergeSorted(oRetDoc, oTmpDoc);
 
-            sResult = sResult.Replace("</ul><ul>", "");   // miejsca po obrazkach
-            return SplitAndSort(sResult);
-        }
-
-        private string SplitAndSort(string sTxtIn)
-        {
-            string SplitAndSortRet;
-            // podziel na kawalki wedle H3, i scal je potem w jeden - od H3 do H3 jest juz posortowane
-            // wejscie: <ul> ... </ul>, po drodze </ul><h3><ul>, moga byc obrazki..
-
-            int iInd;
-            string sTxtOut = "";
-            string sTmp;
-
-            iInd = sTxtIn.IndexOf("<h3", StringComparison.Ordinal);
-            while (iInd > 0)
-            {
-                sTmp = sTxtIn.Substring(0, iInd);
-                sTxtIn = sTxtIn.Substring(iInd);
-
-                iInd = sTmp.LastIndexOf("</ul>", StringComparison.Ordinal);
-                if (iInd > 0)
-                    sTmp = sTmp.Substring(0, iInd + 5);
-
-                iInd = sTxtIn.IndexOf("<ul>", StringComparison.Ordinal);
-                if (iInd > 0)
-                    sTxtIn = sTxtIn.Substring(iInd);
-
-                sTxtOut = MergeSorted(sTxtOut, sTmp);
-                iInd = sTxtIn.IndexOf("<h3", StringComparison.Ordinal);
             }
 
-            iInd = sTxtIn.LastIndexOf("</ul>", StringComparison.Ordinal);
-            if (iInd > 0)
-                sTxtIn = sTxtIn.Substring(0, iInd + 5);
-            SplitAndSortRet = MergeSorted(sTxtOut, sTxtIn);
-            return SplitAndSortRet;
+            return oRetDoc;
         }
 
         private static string PoprawRok(string sTxt)
@@ -459,83 +430,93 @@ namespace Anniversaries
             sOut = sOut.Replace("<li>&#160; ", "<li>&#160;");    // PL dla <1000
 
             sOut = sOut.Replace("<li>&#160;", "<li>");    // wyrownanie do lewej
-            sOut = sOut.Replace("<li>&#160;", "<li>");
-
 
             return sOut;
         }
 
-        private string MergeSorted(string sTxt1, string sTxt2)
+        private HtmlAgilityPack.HtmlDocument MergeSorted(HtmlAgilityPack.HtmlDocument oDom1, HtmlAgilityPack.HtmlDocument oDom2)
         {
+            p.k.DebugOut("MergeSorted");
             // wsortowanie sTxt2 do sTxt1
 
-            if (string.IsNullOrEmpty(sTxt1))
-                return sTxt2; // pierwsza strona - bez sortowania
-            if (string.IsNullOrEmpty(sTxt2))
-                return sTxt1; // symetrycznie niezdarzalnie
+            if (oDom1 is null)
+                return oDom2; // pierwsza strona - bez sortowania
+            if (oDom2 is null)
+                return oDom1; // symetrycznie niezdarzalnie
 
             // EN: <ul>\n<li><a href = "/wiki/214" title="214">214</a> (czasem nie ma linka, ale to chyba przy powtorkach?)
             // PL: <ul>\n<li>&#160; <a href= "/wiki/214" title="214">214<
             // tyle ze teraz linki sa juz pelne, tzn. https://pl.wikipedia.org/wiki/214
 
-            string sResult = "";
-
-            TYPXML.XmlDocument oDom1 = new TYPXML.XmlDocument();
-            TYPXML.XmlDocument oDom2 = new TYPXML.XmlDocument();
-            try
-            {
-                oDom1.LoadXml(sTxt1);
-            }
-            catch 
-            {
-                oDom1.LoadXml("<ul><li>0 ERROR loading sTxt1, lang: " + mCurrLang + ", part: " + mCurrPart + "</li></ul>");
-            }
-
-            try
-            {
-                oDom2.LoadXml(sTxt2);
-            }
-            catch 
-            {
-                oDom2.LoadXml("<ul><li>0 ERROR loading sTxt2, lang: " + mCurrLang + ", part: " + mCurrPart + "</li></ul>");
-            }
             // </ul><ul>
-            TYPXML.XmlElement oRoot1 = oDom1.DocumentElement;
-            TYPXML.XmlElement oRoot2 = oDom2.DocumentElement;
-            TYPXML.XmlNodeList oNodes1 = oRoot1.SelectNodes("li");
-            TYPXML.XmlNodeList oNodes2 = oRoot2.SelectNodes("li");
+            HtmlAgilityPack.HtmlNode oRoot1 = oDom1.DocumentNode; // <root>...
+            if (oRoot1 is null) return oDom2;
+            HtmlAgilityPack.HtmlNode oRoot2 = oDom2.DocumentNode;
+            if(oRoot2 is null) return oDom1;
 
-            // gdy jest wczesniej błąd, to faktycznie moze byc count=0
-            if ((oNodes1.Count == 0) | (oNodes2.Count == 0))
-                // Dim msg As ContentDialog
-                // msg = New ContentDialog With {
-                // .Title = "ERROR",
-                // .Content = "MergeSorted error, Count=0?",
-                // .CloseButtonText = "Pa"
-                // }
-                // msg.ShowAsync()
-                return "";
+            HtmlAgilityPack.HtmlNodeCollection oNodes1 = oRoot1.ChildNodes; // wewnątrz #document powinien być tylko <root>
+            HtmlAgilityPack.HtmlNodeCollection oNodes2 = oRoot2.ChildNodes;
+
+            if (oNodes1.Count < 1) return oDom2;
+            if (oNodes2.Count < 1) return oDom1;
+            if (oNodes1.Count > 1 || oNodes2.Count > 1)
+            {
+                // coś jest nie tak, powinno być tylko jedno
+                p.k.DebugOut("Something is wrong - should be only one item inside #document!");
+                return oDom1;
+            }
+
+            oNodes1 = oNodes1.ElementAt(0).ChildNodes; // czyli <root> 
+            oNodes2 = oNodes2.ElementAt(0).ChildNodes;
+
+            if (oNodes1.Count <1) return oDom2;
+            if (oNodes2.Count < 1) return oDom1;
+            if (oNodes1.Count > 1 || oNodes2.Count > 1)
+            {
+                // coś jest nie tak, powinno być tylko jedno 
+                p.k.DebugOut("Something is wrong - should be only one item inside <root>!");
+
+                p.k.DebugOut("oNodes1:");
+                foreach(var oItem in oNodes1)
+                {
+                    p.k.DebugOut(oItem.Name);
+                }
+
+                p.k.DebugOut("oNodes2:");
+                foreach (var oItem in oNodes2)
+                {
+                    p.k.DebugOut(oItem.Name);
+                }
+
+                return oDom1;
+            }
+
+            oNodes1 = oNodes1.ElementAt(0).SelectNodes("li");   // a w <root><ul> interesują nas <li>
+            oNodes2 = oNodes2.ElementAt(0).SelectNodes("li");
+
+
+            p.k.DebugOut("MergeSorted, count1= " + oNodes1.Count + ", count2=" + oNodes2.Count);
+
+            //// gdy jest wczesniej błąd, to faktycznie moze byc count=0
+            //if ((oNodes1.Count == 0) || (oNodes2.Count == 0))
+            //    return "";
+
+            string sResult = "";
 
             int i1 = 0;
             int i2 = 0;
 
-//#if NETFX_CORE
-            TYPXML.IXmlNode oNode1 = oNodes1.ElementAt(i1);  // SDK 1803 - nie zna typu? dopiero po rebuild zna
-            TYPXML.IXmlNode oNode2 = oNodes2.ElementAt(i2);  // SDK 1803 - nie zna typu? j.w.
-//#else
-//            TYPXML.XmlNode oNode1 = oNodes1.Item(i1);
-//            TYPXML.XmlNode oNode2 = oNodes2.Item(i2);
-//#endif            
+            HtmlAgilityPack.HtmlNode oNode1 = oNodes1.ElementAt(i1);
+            HtmlAgilityPack.HtmlNode oNode2 = oNodes2.ElementAt(i2);
 
             int iRok1 = Li2Rok(oNode1.InnerText);
             int iRok2 = Li2Rok(oNode2.InnerText);
-
 
             while ((i1 < oNodes1.Count) & (i2 < oNodes2.Count))
             {
                 if (iRok1 < iRok2)
                 {
-                    sResult = sResult + "\n" + PoprawRok(oNode1.GetXml());
+                    sResult = sResult + "\n" + PoprawRok(oNode1.OuterHtml);
                     i1 = i1 + 1;
                     if (i1 < oNodes1.Count)
                     {
@@ -545,7 +526,7 @@ namespace Anniversaries
                 }
                 else
                 {
-                    sResult = sResult + "\n" + PoprawRok(oNode2.GetXml());
+                    sResult = sResult + "\n" + PoprawRok(oNode2.OuterHtml);
                     i2 = i2 + 1;
                     if (i2 < oNodes2.Count)
                     {
@@ -558,20 +539,24 @@ namespace Anniversaries
             while (i1 < oNodes1.Count)
             {
                 oNode1 = oNodes1.ElementAt(i1);
-                sResult = sResult + "\n" + PoprawRok(oNode1.GetXml());
+                sResult = sResult + "\n" + PoprawRok(oNode1.OuterHtml);
                 i1 = i1 + 1;
             }
 
             while (i2 < oNodes2.Count)
             {
                 oNode2 = oNodes2.ElementAt(i2);
-                sResult = sResult + "\n" + PoprawRok(oNode2.GetXml());
+                sResult = sResult + "\n" + PoprawRok(oNode2.OuterHtml);
                 i2 = i2 + 1;
             }
 
+            var oRetDoc = new HtmlAgilityPack.HtmlDocument();
+
             if (string.IsNullOrEmpty(sResult))
-                return "";
-            return "<ul>" + sResult + "</ul>";
+                return oRetDoc;
+
+            oRetDoc.LoadHtml("<root><ul>" + sResult + "</ul></root>");
+            return oRetDoc;
         }
 
         /// <summary>
@@ -586,8 +571,13 @@ namespace Anniversaries
             return DodajPelnyLinkRet;
         }
 
-        private async System.Threading.Tasks.Task<string> ReadOneLang(string sUrl, string sPrefLang)
+        /// <summary>
+        /// wczytaj dane z sUrl, dodawaj do mEvents, mBirths, mDeaths i mHolid
+        /// </summary>
+        private async System.Threading.Tasks.Task<string> ReadOneLang(string sUrl)
         {
+            p.k.DebugOut("ReadOneLang(" + sUrl);
+
             string sTxt;
             sTxt = await GetHtmlPage(sUrl).ConfigureAwait(true);
 
@@ -597,7 +587,13 @@ namespace Anniversaries
             sUrl = sUrl.Substring(0, iInd);
 
             sTxt = DodajPelnyLink(sTxt, sUrl);
-            mCurrLang = sUrl;
+
+            if (sTxt.StartsWith("<!DOCTYPE html>"))
+                sTxt = sTxt.Replace("<!DOCTYPE html>", "");
+
+            var htmlDoc = new HtmlAgilityPack.HtmlDocument();
+            htmlDoc.LoadHtml(sTxt);
+
 
             string sTabs;
             sTabs = p.k.GetSettingsString("EnabledTabs", "EBD");
@@ -607,13 +603,27 @@ namespace Anniversaries
                 case "en":
                     {
                         if (sTabs.IndexOf("E", StringComparison.Ordinal) > -1)
-                            mEvents = MergeSorted(mEvents, WyciagnijDane(sTxt, "id=\"Events\">Events"));
+                            mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "Events", sUrl));
                         if (sTabs.IndexOf("B", StringComparison.Ordinal) > -1)
-                            mBirths = MergeSorted(mBirths, WyciagnijDane(sTxt, "id=\"Births\">Births"));
+                            mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "Births", sUrl));
                         if (sTabs.IndexOf("D", StringComparison.Ordinal) > -1)
-                            mDeaths = MergeSorted(mDeaths, WyciagnijDane(sTxt, "id=\"Deaths\">Deaths"));
-                        if (sTabs.IndexOf("H", StringComparison.Ordinal) > -1)
-                            mHolid = mHolid + WyciagnijDane(sTxt, "observances\">Holidays");
+                            mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "Deaths", sUrl));
+                        //if (sTabs.IndexOf("H", StringComparison.Ordinal) > -1)
+                        //    mHolid = mHolid + WyciagnijDane(sTxt, "observances\">Holidays", sUrl);
+                        break;
+                    }
+
+
+                case "de":
+                    {
+                        if (sTabs.IndexOf("E", StringComparison.Ordinal) > -1)
+                            mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "Ereignisse", sUrl));
+                        if (sTabs.IndexOf("B", StringComparison.Ordinal) > -1)
+                            mBirths = WyciagnijDane(htmlDoc, "Geboren", sUrl);
+                        if (sTabs.IndexOf("D", StringComparison.Ordinal) > -1)
+                            mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "Gestorben", sUrl));
+                        //if (sTabs.IndexOf("H", StringComparison.Ordinal) > -1)
+                        //    mHolid = mHolid + WyciagnijDane(sTxt, "id=\"Feier");
                         break;
                     }
 
@@ -621,33 +631,15 @@ namespace Anniversaries
                     {
                         if (sTabs.IndexOf("E", StringComparison.Ordinal) > -1)
                         {
-                            mEvents = MergeSorted(mEvents, WytnijObrazkiFR(WyciagnijDane(sTxt, "id=\"Wydarzenia_w_Pols")));
-                            mEvents = MergeSorted(mEvents, WytnijObrazkiFR(WyciagnijDane(sTxt, "id=\"Wydarzenia_na_świ")));
+                            mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "Wydarzenia w Pols", sUrl));
+                            mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "Wydarzenia na świ", sUrl));
                         }
                         if (sTabs.IndexOf("B", StringComparison.Ordinal) > -1)
-                            mBirths = MergeSorted(mBirths, WyciagnijDane(sTxt, "id=\"Urodzili_się"));
+                            mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "Urodzili", sUrl));
                         if (sTabs.IndexOf("D", StringComparison.Ordinal) > -1)
-                            mDeaths = MergeSorted(mDeaths, WyciagnijDane(sTxt, "id=\"Zmarli"));
-                        if (sTabs.IndexOf("H", StringComparison.Ordinal) > -1)
-                            mHolid = mHolid + WyciagnijDane(sTxt, "id=\"Święta");
-                        break;
-                    }
-
-                case "de":
-                    {
-                        if (sTabs.IndexOf("E", StringComparison.Ordinal) > -1)
-                            mEvents = MergeSorted(mEvents, PrepareAndSplitSort(WyciagnijDane(sTxt, "id=\"Ereignisse")));
-                        // If sTabs.IndexOf("B") > -1 Then mBirths = MergeSorted(mBirths, WytnijObrazkiDE(WyciagnijDane(sTxt, "id=""Geboren")))
-                        // If sTabs.IndexOf("D") > -1 Then mDeaths = MergeSorted(mDeaths, WytnijObrazkiDE(WyciagnijDane(sTxt, "id=""Gestorben")))
-                        if (sTabs.IndexOf("B", StringComparison.Ordinal) > -1)
-                        {
-                            string sTmp = PrepareAndSplitSort(WyciagnijDane(sTxt, "id=\"Geboren"));
-                            mBirths = MergeSorted(mBirths, sTmp);
-                        }
-                        if (sTabs.IndexOf("D", StringComparison.Ordinal) > -1)
-                            mDeaths = MergeSorted(mDeaths, PrepareAndSplitSort(WyciagnijDane(sTxt, "id=\"Gestorben")));
-                        if (sTabs.IndexOf("H", StringComparison.Ordinal) > -1)
-                            mHolid = mHolid + WyciagnijDane(sTxt, "id=\"Feier");
+                            mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "Zmarli", sUrl));
+                        //if (sTabs.IndexOf("H", StringComparison.Ordinal) > -1)
+                        //    mHolid = mHolid + WyciagnijDane(sTxt, "id=\"Święta");
                         break;
                     }
 
@@ -655,55 +647,141 @@ namespace Anniversaries
                     {
                         if (sTabs.IndexOf("E", StringComparison.Ordinal) > -1)
                         {
-                            mEvents = MergeSorted(mEvents, WytnijObrazkiFR(WyciagnijDane(sTxt, "id=\"Événements")));
-                            mEvents = MergeSorted(mEvents, WytnijObrazkiFR(WyciagnijDane(sTxt, "id=\"Arts,_culture")));
-                            mEvents = MergeSorted(mEvents, WytnijObrazkiFR(WyciagnijDane(sTxt, "id=\"Sciences_et")));
-                            mEvents = MergeSorted(mEvents, WytnijObrazkiFR(WyciagnijDane(sTxt, "id=\"Économie")));
+                            mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "Événements", sUrl));
+                            mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "Arts, culture", sUrl));
+                            mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "Sciences_et", sUrl));
+                            mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "Économie", sUrl));
                         }
                         if (sTabs.IndexOf("B", StringComparison.Ordinal) > -1)
-                            mBirths = MergeSorted(mBirths, WytnijObrazkiFR(WyciagnijDane(sTxt, "es\">Naissances")));
+                            mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "Naissances", sUrl));
                         if (sTabs.IndexOf("D", StringComparison.Ordinal) > -1)
-                            mDeaths = MergeSorted(mDeaths, WytnijObrazkiFR(WyciagnijDane(sTxt, "s\">Décès")));
-                        if (sTabs.IndexOf("H", StringComparison.Ordinal) > -1)
-                            mHolid = mHolid + WyciagnijDane(sTxt, "ns\">Célébrations");
+                            mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "Décès", sUrl));
+                        //if (sTabs.IndexOf("H", StringComparison.Ordinal) > -1)
+                        //    mHolid = mHolid + WyciagnijDane(sTxt, "ns\">Célébrations");
                         break;
                     }
 
                 case "es":
                     {
-                        // If sTabs.IndexOf("E") > -1 Then mEvents = MergeSorted(mEvents, WytnijObrazkiDE(WyciagnijDane(sTxt, "s"">Acontecimientos")))
-                        // If sTabs.IndexOf("B") > -1 Then mBirths = MergeSorted(mBirths, WytnijObrazkiDE(WyciagnijDane(sTxt, "s"">Nacimientos")))
-                        // If sTabs.IndexOf("D") > -1 Then mDeaths = MergeSorted(mDeaths, WytnijObrazkiDE(WyciagnijDane(sTxt, "s"">Fallecimientos")))
                         if (sTabs.IndexOf("E", StringComparison.Ordinal) > -1)
-                            mEvents = MergeSorted(mEvents, PrepareAndSplitSort(WyciagnijDane(sTxt, "s\">Acontecimientos")));
+                            mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "Acontecimientos", sUrl));
                         if (sTabs.IndexOf("B", StringComparison.Ordinal) > -1)
-                            mBirths = MergeSorted(mBirths, PrepareAndSplitSort(WyciagnijDane(sTxt, "s\">Nacimientos")));
+                            mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "Nacimientos", sUrl));
                         if (sTabs.IndexOf("D", StringComparison.Ordinal) > -1)
-                            mDeaths = MergeSorted(mDeaths, PrepareAndSplitSort(WyciagnijDane(sTxt, "s\">Fallecimientos")));
-                        if (sTabs.IndexOf("H", StringComparison.Ordinal) > -1)
-                            mHolid = mHolid + WyciagnijDane(sTxt, "s\">Celebraciones");
+                            mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "Fallecimientos", sUrl));
+                        //if (sTabs.IndexOf("H", StringComparison.Ordinal) > -1)
+                        //    mHolid = mHolid + WyciagnijDane(sTxt, "s\">Celebraciones");
                         break;
                     }
 
                 case "ru":
                     {
                         if (sTabs.IndexOf("E", StringComparison.Ordinal) > -1)
-                            mEvents = MergeSorted(mEvents, WytnijObrazkiFR(WyciagnijDane(sTxt, "id=\"События")));
+                            mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "События", sUrl));
                         if (sTabs.IndexOf("B", StringComparison.Ordinal) > -1)
-                            mBirths = MergeSorted(mBirths, WytnijObrazkiFR(WyciagnijDane(sTxt, "id=\"Родились")));
+                            mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "Родились", sUrl));
                         if (sTabs.IndexOf("D", StringComparison.Ordinal) > -1)
-                            mDeaths = MergeSorted(mDeaths, WytnijObrazkiFR(WyciagnijDane(sTxt, "id=\"Скончались")));
-                        if (sTabs.IndexOf("H", StringComparison.Ordinal) > -1)
-                            mHolid = mHolid + WyciagnijDane(sTxt, "id=\"Праздники");
+                            mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "Скончались", sUrl));
+                        //if (sTabs.IndexOf("H", StringComparison.Ordinal) > -1)
+                        //    mHolid = mHolid + WyciagnijDane(sTxt, "id=\"Праздники");
+                        break;
+                    }
+
+                case "uk":
+                    {
+                        if (sTabs.Contains("E"))
+                            mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "Події", sUrl));
+                        if (sTabs.Contains("B"))
+                            mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "Народились", sUrl));
+                        if (sTabs.Contains("D"))
+                            mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "Померли", sUrl));
+                        break;
+                    }
+                case "el":
+                    {
+                        if (sTabs.Contains("E"))
+                            mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "Γεγονότα", sUrl));
+                        if (sTabs.Contains("B"))
+                            mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "Γεννήσεις", sUrl));
+                        if (sTabs.Contains("D"))
+                            mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "Θάνατοι", sUrl));
+                        break;
+                    }
+
+                case "he":
+                    {
+                        if (sTabs.Contains("E"))
+                            mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "אירועים", sUrl));
+                        if (sTabs.Contains("B"))
+                            mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "נולדו", sUrl));
+                        if (sTabs.Contains("D"))
+                            mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "נפטרו", sUrl));
+                        break;
+                    }
+
+                case "ja":
+                    {
+                        if (sTabs.Contains("E"))
+                            mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "できごと", sUrl));
+                        if (sTabs.Contains("B"))
+                            mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "誕生日", sUrl));
+                        if (sTabs.Contains("D"))
+                            mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "忌日", sUrl));
+                        break;
+                    }
+                case "ar":
+                    {
+                        if (sTabs.Contains("E"))
+                            mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "أحداث", sUrl));
+                        if (sTabs.Contains("B"))
+                            mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "مواليد", sUrl));
+                        if (sTabs.Contains("D"))
+                            mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "وفيات", sUrl));
+                        break;
+                    }
+                case "ka":
+                    {
+                        if (sTabs.Contains("E"))
+                            mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "მოვლენები", sUrl));
+                        if (sTabs.Contains("B"))
+                            mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "დაბადებულნი", sUrl));
+                        if (sTabs.Contains("D"))
+                            mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "გარდაცვლილნი", sUrl));
+                        break;
+                    }
+
+                case "ko":
+                    {
+                        if (sTabs.Contains("E"))
+                        {
+                            mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "사건", sUrl));
+                            mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "문화", sUrl));
+                        }
+                        if (sTabs.Contains("B"))
+                            mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "탄생", sUrl));
+                        if (sTabs.Contains("D"))
+                            mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "사망", sUrl));
+                        break;
+                    }
+
+                case "zh":
+                    {
+                        if (sTabs.Contains("E"))
+                            mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "大事记", sUrl));
+                        if (sTabs.Contains("B"))
+                            mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "出生", sUrl));
+                        if (sTabs.Contains("D"))
+                            mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "逝世", sUrl));
                         break;
                     }
 
                 default:
                     {
-                        mEvents = mEvents + "<h2>Unsupported lang: " + sUrl + "</h2>";
-                        mBirths = mBirths + "<h2>Unsupported lang: " + sUrl + "</h2>";
-                        mDeaths = mDeaths + "<h2>Unsupported lang: " + sUrl + "</h2>";
-                        mHolid = mHolid + "<h2>Unsupported lang: " + sUrl + "</h2>";
+                        var oUnsupported = HtmlAgilityPack.HtmlNode.CreateNode("<h2>Unsupported lang: " + sUrl + "</h2>");
+                        mEvents.DocumentNode.AppendChild(oUnsupported);
+                        mBirths.DocumentNode.AppendChild(oUnsupported);
+                        mDeaths.DocumentNode.AppendChild(oUnsupported);
+
                         break;
                     }
             }
@@ -737,41 +815,27 @@ namespace Anniversaries
 
         private static async System.Threading.Tasks.Task<string> GetHtmlPage(string sUrl)
         { // UNO NIE MA windows.web - migracja do System.Net.Http
-            System.Net.Http.HttpClient oHttp = new System.Net.Http.HttpClient();
-            Uri oUri = new Uri(sUrl);
-            System.Net.Http.HttpResponseMessage oResp;// = new System.Net.Http.HttpResponseMessage();
-            oResp = await oHttp.GetAsync(oUri).ConfigureAwait(true);
-            if (!oResp.IsSuccessStatusCode)
-            {
-                await p.k.DialogBoxAsync("GetHtmlPage error, URL=" + sUrl).ConfigureAwait(true);
-                //Windows.UI.Popups.MessageDialog oDlg;
-                //oDlg = new Windows.UI.Popups.MessageDialog("GetHtmlPage error, URL=" + sUrl);
-                //oDlg.Title = "ERROR";
-                //oDlg.Commands.Add(new Windows.UI.Popups.UICommand("Pa"));
-                //await oDlg.ShowAsync();
+            p.k.DebugOut("Reading page: " + sUrl);
 
-                //ContentDialog msg;
-                //// UNO nie ma ContentDialog, choć piszą że ma...
-                //msg = new ContentDialog()
-                //{
-                //    Title = "ERROR",
-                //    Content = "GetHtmlPage error, URL=" + sUrl,
-                //    CloseButtonText = "Pa"
-                //};
-                //await msg.ShowAsync();
-                oResp.Dispose();
-                oHttp.Dispose();
-                return "";
+            using (System.Net.Http.HttpClient oHttp = new System.Net.Http.HttpClient())
+            {
+                Uri oUri = new Uri(sUrl);
+                using (System.Net.Http.HttpResponseMessage oResp = await oHttp.GetAsync(oUri).ConfigureAwait(true))
+                {
+                    if (!oResp.IsSuccessStatusCode)
+                    {
+                        await p.k.DialogBoxAsync("GetHtmlPage error, URL=" + sUrl).ConfigureAwait(true);
+                        return "";
+                    }
+                    return await oResp.Content.ReadAsStringAsync().ConfigureAwait(true);
+                }
             }
-            string sTxt;
-            sTxt = await oResp.Content.ReadAsStringAsync().ConfigureAwait(true);
-            oResp.Dispose();
-            oHttp.Dispose();
-            return sTxt;
         }
 
         private async void bRead_Click(object sender, RoutedEventArgs e)
         {
+            p.k.DebugOut("bRead_Click");
+
             // Uno bug override
             //if (pkar.GetPlatform("android"))
             //{
@@ -783,13 +847,13 @@ namespace Anniversaries
             string sUrl;
 
             sUrl = "https://en.wikipedia.org/wiki/" + MonthNo2EnName(mDate.Month) + "_" + mDate.Day.ToString(System.Globalization.CultureInfo.InvariantCulture);
-            mEvents = "";
-            mBirths = "";
-            mDeaths = "";
-            mHolid = "";
+            mEvents = new HtmlAgilityPack.HtmlDocument();
+            mBirths = new HtmlAgilityPack.HtmlDocument();
+            mDeaths = new HtmlAgilityPack.HtmlDocument();
+            // mHolid = "";
             tbDzien.Text = "Reading EN...";
             
-            string sTxt = await ReadOneLang(sUrl, mPreferredLang).ConfigureAwait(true);
+            string sTxt = await ReadOneLang(sUrl).ConfigureAwait(true);
 
             sUrl = p.k.GetSettingsString("EnabledLanguages", "pl de fr es ru");
             List<string> lList = ExtractLangLinks(sUrl, sTxt);
@@ -801,7 +865,7 @@ namespace Anniversaries
             foreach (string sUri in lList)
             {
                 tbDzien.Text = "Reading " + sUri.Substring(8, 2).ToUpperInvariant() + "...";
-                await ReadOneLang(sUri, mPreferredLang).ConfigureAwait(true);
+                await ReadOneLang(sUri).ConfigureAwait(true);
                 uiProgBar.Value = uiProgBar.Value + 1;
             }
             uiProgBar.Visibility = Visibility.Collapsed;
@@ -850,6 +914,14 @@ namespace Anniversaries
             wbViewer.NavigateToString(sHtml);
         }
 
+        private void SetWebView(HtmlAgilityPack.HtmlNode oDoc, string sHead)
+        {
+            if (oDoc.FirstChild == null)
+                p.k.DialogBoxRes("errNoData");
+            else
+                SetWebView(oDoc.OuterHtml, sHead);
+        }
+
         private void ToggleButtony(bool bEv, bool bBir, bool bDea)
         {
             // primary
@@ -872,34 +944,29 @@ namespace Anniversaries
 
             private void bEvent_Click(object sender, RoutedEventArgs e)
         {
-            //if(pkar.GetPlatform("android"))
-            //    SetWebView("<p>testowyparagraf</p>","");
-            //else
-                SetWebView(mEvents, ""); // "<base href=""https://en.wikipedia.org/"">")
+                SetWebView(mEvents.DocumentNode, ""); // "<base href=""https://en.wikipedia.org/"">")
             ToggleButtony(true, false, false);
         }
-        private void bHolid_Click(object sender, RoutedEventArgs e)
-        {
-            SetWebView(mHolid, ""); // "<base href=""https://en.wikipedia.org/"">")
-            ToggleButtony(false, false, false);
-        }
+        //private void bHolid_Click(object sender, RoutedEventArgs e)
+        //{
+        //    SetWebView(mHolid, ""); // "<base href=""https://en.wikipedia.org/"">")
+        //    ToggleButtony(false, false, false);
+        //}
         private void bBirth_Click(object sender, RoutedEventArgs e)
         {
-            SetWebView(mBirths, ""); // "<base href=""https://en.wikipedia.org/"">"
+            SetWebView(mBirths.DocumentNode, ""); // "<base href=""https://en.wikipedia.org/"">"
             ToggleButtony(false, true, false);
         }
         private void bDeath_Click(object sender, RoutedEventArgs e)
         {
-            SetWebView(mDeaths, ""); // "<base href=""https://en.wikipedia.org/"">")
+            SetWebView(mDeaths.DocumentNode, ""); // "<base href=""https://en.wikipedia.org/"">")
             ToggleButtony(false, false, true);
         }
 
         private void UwpAndro()
         { // przełączanie aktywnego w Android (AppBar) i w UWP (BottomAppBar-CommandBar)
           // pierwotna wersja miała #if, ale tak chyba jest lepiej
-//#if !__WASM__ && !__IOS__
             uiDay.Date = mDate;
-//#endif
 
 #if NETFX_CORE
             // nie wiem czemu pokazywane jako nieistniejące dla Droid - skoro powinno być?
@@ -931,198 +998,120 @@ namespace Anniversaries
             return iIcons;
         }
 
+        private void DopasowanieCmdBar_GoPages(bool bAsPrimaryCmds)
+        {
+            Visibility bVis = (bAsPrimaryCmds) ? Visibility.Visible : Visibility.Collapsed;
+            uiBarSeparat3.Visibility = bVis;
+            uiGoSett.Visibility = bVis;
+            uiGoInfo.Visibility = bVis;
+
+            bVis = (!bAsPrimaryCmds) ? Visibility.Visible : Visibility.Collapsed;
+            uiGoSettSec.Visibility = bVis;
+            uiGoInfoSec.Visibility = bVis;
+        }
+
+        private void DopasowanieCmdBar_SelektorStrony(bool bAsPrimaryCmds)
+        {
+            Visibility bVis = (bAsPrimaryCmds) ? Visibility.Visible : Visibility.Collapsed;
+            uiBarSeparat2.Visibility = bVis;
+            bEvent.Visibility = bVis;
+            // bHolid.Visibility = bVis;
+            bBirth.Visibility = bVis;
+            bDeath.Visibility = bVis;
+
+            bVis = (!bAsPrimaryCmds) ? Visibility.Visible : Visibility.Collapsed;
+            uiSelektorStrony.Visibility = bVis;
+
+        }
+
+        private void DopasowanieCmdBar_Kalendarz(bool bAsPrimaryCmds, bool bAndroSec)
+        {
+            Visibility bVis = (bAsPrimaryCmds) ? Visibility.Visible : Visibility.Collapsed;
+            uiKalend.Visibility = bVis;
+
+            bVis = (!bAsPrimaryCmds) ? Visibility.Visible : Visibility.Collapsed;
+            uiKalendSec.Visibility = bVis;
+#if !NETFX_CORE
+            bVis = (!bAndroSec) ? Visibility.Visible : Visibility.Collapsed;
+            uiAndroSec.Visibility = bVis;
+#endif
+        }
+
         private void DopasowanieCmdBar()
         {
             int iIcons = CmdBarWidth();
 
             // ustawienie w zależności od szerokości ekranu
-             // Lumia 532 ma 480 px, i to są 4 ikonki + wielokropek
-             // separator ma szerokość połowy, "..." trochę więcej (jakieś 3/4)
+            // Lumia 532 ma 480 px, i to są 4 ikonki + wielokropek
+            // separator ma szerokość połowy, "..." trochę więcej (jakieś 3/4)
 
 
-                // pomysły:
-                // text + 10 + ... : sep, 2x (load, date), sep, 3x przelacznik zawartosci, sep, 2x (info, setup), wielokropek
-                // text + 9 + ... : 2x (load, date), sep, 3x przelacznik zawartosci, sep, 2x (info, setup), wielokropek
-                // text + 5 + ... : 1x load, sep, 3x przelacznik zawartosci, wielokropek (info, setup, date)
-                // text + 2 + ... : text, submenu przelacznika, submenu komend, wielokropek
-                // (czyli migracje miedzy secondary a primarycommand)
-                //System.Diagnostics.Debug.WriteLine("ikonek ma być niby " + iIcons.ToString());
+            // pomysły:
+            // text + 10 + ... : sep, 2x (load, date), sep, 3x przelacznik zawartosci, sep, 2x (info, setup), wielokropek
+            // text + 9 + ... : 2x (load, date), sep, 3x przelacznik zawartosci, sep, 2x (info, setup), wielokropek
+            // text + 5 + ... : 1x load, sep, 3x przelacznik zawartosci, wielokropek (info, setup, date)
+            // text + 2 + ... : text, submenu przelacznika, submenu komend, wielokropek
+            // (czyli migracje miedzy secondary a primarycommand)
+            //System.Diagnostics.Debug.WriteLine("ikonek ma być niby " + iIcons.ToString());
+
+            // zawsze:
+            tbDzien.Visibility = Visibility.Visible;
+            bRefresh.Visibility = Visibility.Visible;
 
 
-                if (iIcons > 8)
-                {
-                    // text + 7butt + 3sep = 8.5 + ... : sep, 2x (load, date), sep, 3x przelacznik zawartosci, sep, 2x (info, setup), wielokropek
+            if (iIcons > 8)
+            {
+                // text + 7butt + 3sep = 8.5 + ... : sep, 2x (load, date), sep, 3x przelacznik zawartosci, sep, 2x (info, setup), wielokropek
+                uiBarSeparat1.Visibility = Visibility.Visible;
+                DopasowanieCmdBar_Kalendarz(true, false);
+                DopasowanieCmdBar_SelektorStrony(true);
+                DopasowanieCmdBar_GoPages(true);
 
-                    // zrob co trzeba i dalej nie idź
-                    // primary commands
-                    tbDzien.Visibility = Visibility.Visible;
-                    uiBarSeparat1.Visibility = Visibility.Visible;
-                    bRefresh.Visibility = Visibility.Visible;
-//#if !__WASM__
-                uiKalend.Visibility = Visibility.Visible;
-//#endif
-                uiBarSeparat2.Visibility = Visibility.Visible;
-                    uiSelektorStrony.Visibility = Visibility.Collapsed;
-                    bEvent.Visibility = Visibility.Visible;
-                    // bHolid.Visibility = Visibility.Visible;
-                    bBirth.Visibility = Visibility.Visible;
-                    bDeath.Visibility = Visibility.Visible;
-                    uiBarSeparat3.Visibility = Visibility.Visible;
-                    uiGoSett.Visibility = Visibility.Visible;
-                    uiGoInfo.Visibility = Visibility.Visible;
-
-                    // secondary commands
-
-//#if !__WASM__
-                    uiKalendSec.Visibility = Visibility.Collapsed;
-//#endif
-                    uiGoSettSec.Visibility = Visibility.Collapsed;
-                    uiGoInfoSec.Visibility = Visibility.Collapsed;
-                    // dla Android: obsluga guzika z dalszymi komendami
-#if !NETFX_CORE
-                    uiAndroSec.Visibility = Visibility.Collapsed;
-#endif
-
-                    return;
-                }
+                return; // bo 9 jest także > 4 :)
+            }
 
 
-                if (iIcons > 7)
-                {
+            if (iIcons > 7)
+            {
                 // text + + 7butt + 2sep = 8 + ... : 2x (load, date), sep, 3x przelacznik zawartosci, sep, 2x (info, setup), wielokropek
-                // zrob co trzeba i dalej nie idź
-                // primary commands
-                tbDzien.Visibility = Visibility.Visible;
-                    uiBarSeparat1.Visibility = Visibility.Collapsed;
-                    bRefresh.Visibility = Visibility.Visible;
-//#if !__WASM__
-                    uiKalend.Visibility = Visibility.Visible;
-//#endif 
-                    uiBarSeparat2.Visibility = Visibility.Visible;
-                    uiSelektorStrony.Visibility = Visibility.Collapsed;
-                    bEvent.Visibility = Visibility.Visible;
-                    // bHolid.Visibility = Visibility.Visible;
-                    bBirth.Visibility = Visibility.Visible;
-                    bDeath.Visibility = Visibility.Visible;
-                    uiBarSeparat3.Visibility = Visibility.Visible;
-                    uiGoSett.Visibility = Visibility.Visible;
-                    uiGoInfo.Visibility = Visibility.Visible;
+                uiBarSeparat1.Visibility = Visibility.Collapsed;
+                DopasowanieCmdBar_Kalendarz(true, false);
+                DopasowanieCmdBar_SelektorStrony(true);
+                DopasowanieCmdBar_GoPages(true);
 
-                    // secondary commands
-//#if !__WASM__
-                    uiKalendSec.Visibility = Visibility.Collapsed;
-//#endif 
-                    uiGoSettSec.Visibility = Visibility.Collapsed;
-                    uiGoInfoSec.Visibility = Visibility.Collapsed;
-                    // dla Android: obsluga guzika z dalszymi komendami
-#if !NETFX_CORE
-                    uiAndroSec.Visibility = Visibility.Collapsed;
-#endif
-
-                    return;
-                }
+                return;
+            }
 
             if (iIcons > 5)
             {
                 // text + 5.5 + ... : 1x load, sep, 3x przelacznik zawartosci, wielokropek (info, setup, date)
-
-                // zrob co trzeba i dalej nie idź
-                // primary commands
-                tbDzien.Visibility = Visibility.Visible;
                 uiBarSeparat1.Visibility = Visibility.Collapsed;
-                bRefresh.Visibility = Visibility.Visible;
-//#if !__WASM__
-                uiKalend.Visibility = Visibility.Visible;
-//#endif 
-                uiBarSeparat2.Visibility = Visibility.Visible;
-                uiSelektorStrony.Visibility = Visibility.Collapsed;
-                bEvent.Visibility = Visibility.Visible;
-                // bHolid.Visibility = Visibility.Visible;
-                bBirth.Visibility = Visibility.Visible;
-                bDeath.Visibility = Visibility.Visible;
-                uiBarSeparat3.Visibility = Visibility.Collapsed;
-                uiGoSett.Visibility = Visibility.Collapsed;
-                uiGoInfo.Visibility = Visibility.Collapsed;
-
-                // secondary commands
-//#if !__WASM__
-                uiKalendSec.Visibility = Visibility.Collapsed;
-//#endif 
-                uiGoSettSec.Visibility = Visibility.Visible;
-                uiGoInfoSec.Visibility = Visibility.Visible;
-                // dla Android: obsluga guzika z dalszymi komendami
-#if !NETFX_CORE
-                    uiAndroSec.Visibility = Visibility.Visible;
-#endif
+                DopasowanieCmdBar_Kalendarz(true, false);
+                DopasowanieCmdBar_SelektorStrony(true);
+                DopasowanieCmdBar_GoPages(false);
 
                 return;
             }
 
 
             if (iIcons > 4)
-                {
-                    // text + 4.5 + ... : 1x load, sep, 3x przelacznik zawartosci, wielokropek (info, setup, date)
-
-                    // zrob co trzeba i dalej nie idź
-                    // primary commands
-                    tbDzien.Visibility = Visibility.Visible;
-                    uiBarSeparat1.Visibility = Visibility.Collapsed;
-                    bRefresh.Visibility = Visibility.Visible;
-//#if !__WASM__
-                    uiKalend.Visibility = Visibility.Collapsed;
-//#endif 
-                    uiBarSeparat2.Visibility = Visibility.Visible;
-                    uiSelektorStrony.Visibility = Visibility.Collapsed;
-                    bEvent.Visibility = Visibility.Visible;
-                    // bHolid.Visibility = Visibility.Visible;
-                    bBirth.Visibility = Visibility.Visible;
-                    bDeath.Visibility = Visibility.Visible;
-                    uiBarSeparat3.Visibility = Visibility.Collapsed;
-                    uiGoSett.Visibility = Visibility.Collapsed;
-                    uiGoInfo.Visibility = Visibility.Collapsed;
-
-                    // secondary commands
-//#if !__WASM__
-                    uiKalendSec.Visibility = Visibility.Visible;
-//#endif
-                    uiGoSettSec.Visibility = Visibility.Visible;
-                    uiGoInfoSec.Visibility = Visibility.Visible;
-                    // dla Android: obsluga guzika z dalszymi komendami
-#if !NETFX_CORE
-                    uiAndroSec.Visibility = Visibility.Visible;
-#endif
-
-                    return;
-                }
-
-                // najmniejsze
-
-                // primary commands
-                tbDzien.Visibility = Visibility.Visible;
+            {
+                // text + 4.5 + ... : 1x load, sep, 3x przelacznik zawartosci, wielokropek (info, setup, date)
                 uiBarSeparat1.Visibility = Visibility.Collapsed;
-                bRefresh.Visibility = Visibility.Visible;
-//#if !__WASM__
-                uiKalend.Visibility = Visibility.Collapsed;
-//#endif
-                uiBarSeparat2.Visibility = Visibility.Collapsed;
-                uiSelektorStrony.Visibility = Visibility.Visible;
-                bEvent.Visibility = Visibility.Collapsed;
-                // bHolid.Visibility = Visibility.Collapsed;
-                bBirth.Visibility = Visibility.Collapsed;
-                bDeath.Visibility = Visibility.Collapsed;
-                uiBarSeparat3.Visibility = Visibility.Collapsed;
-                uiGoSett.Visibility = Visibility.Collapsed;
-                uiGoInfo.Visibility = Visibility.Collapsed;
+                DopasowanieCmdBar_Kalendarz(false, true);
+                DopasowanieCmdBar_SelektorStrony(true);
+                DopasowanieCmdBar_GoPages(false);
 
-                // secondary commands
-//#if !__WASM__
-                uiKalendSec.Visibility = Visibility.Visible;
-//#endif 
-                uiGoSettSec.Visibility = Visibility.Visible;
-                uiGoInfoSec.Visibility = Visibility.Visible;
-#if !NETFX_CORE
-                uiAndroSec.Visibility = Visibility.Visible;
-#endif
+                return;
+            }
+
+            // najmniejsze
+
+            // primary commands
+            uiBarSeparat1.Visibility = Visibility.Collapsed;
+            DopasowanieCmdBar_Kalendarz(false, true);
+            DopasowanieCmdBar_SelektorStrony(false);
+            DopasowanieCmdBar_GoPages(false);
 
         }
 
@@ -1131,25 +1120,18 @@ namespace Anniversaries
             string sTmp;
             sTmp = p.k.GetSettingsString("EnabledTabs", "EBD");
 
-            bEvent.IsEnabled = (sTmp.IndexOf("E",StringComparison.Ordinal ) > -1);
-            bBirth.IsEnabled = (sTmp.IndexOf("B", StringComparison.Ordinal) > -1);
-            bDeath.IsEnabled = (sTmp.IndexOf("D", StringComparison.Ordinal) > -1);
+            bEvent.IsEnabled = sTmp.Contains("E");
+            bBirth.IsEnabled = sTmp.Contains("B");
+            bDeath.IsEnabled = sTmp.Contains("D");
             //bHolid.IsEnabled = (sTmp.IndexOf("H",StringComparison.Ordinal) > -1);
 
             mDate = DateTime.Now;
 
-            
             UwpAndro();             // Uno bug override - własny AppBar
             DopasowanieCmdBar();    // liczba ikonek a szerokość 
 
             if (p.k.GetSettingsBool("AutoLoad")) bRead_Click(null, null);
 
-            //uiCmdBar.Padding = new Thickness(0, 0, 0, 50);
-            //uiCmdBar.MinHeight = 100;
-            //uiCmdBar.Margin.Bottom = 40;
-            // bRead_Click(null, null);    // do testowania Android - appBar nie dziala?
-            //bSetup_Click(null, null);
-            //bInfo_Click(null, null);
         }
 
         private void wbViewer_NavigationStarting(WebView sender, WebViewNavigationStartingEventArgs args)
@@ -1166,17 +1148,9 @@ namespace Anniversaries
 #pragma warning restore
         }
 
-//#if NETFX_CORE || __ANDROID__ || __IOS__
 
-//#if NETFX_CORE
         private void uiDay_Changed(CalendarDatePicker sender, CalendarDatePickerDateChangedEventArgs args)
         {
-//#else
-//        private void uiDay_Changed(object sender1, CalendarDatePickerDateChangedEventArgs args)
-//        {
-//            CalendarDatePicker sender;
-//            sender = sender1 as CalendarDatePicker;
-//#endif
             // 11/27/2017 9:11:28 PM  1.5.1.6  Console     Microsoft-Xbox One  10.0.16299.4037 
             // System::Nullable$1_System::DateTimeOffset_.get_Value
             // Anniversaries::MainPage.uiDay_Changed
@@ -1185,38 +1159,11 @@ namespace Anniversaries
                 if (sender.Date.HasValue)
                     mDate = sender.Date.Value;
         }
-//#else
-//        // Uno bug override
-//        private void uiDayAndro_Changed(object sender, DatePickerValueChangedEventArgs args)
-//        {// wizard daje tu Object sender, a przy Calendar.. - dokładny typ sendera.
-//            DatePicker oPicker;
-//            oPicker = sender as DatePicker;
-//            if (oPicker is null) return;
 
-//            if (oPicker.Date != null)
-//                mDate = oPicker.Date;
-//        }
-//#endif
-
-            private void uiGrid_Resized(object sender, SizeChangedEventArgs e)
+        private void uiGrid_Resized(object sender, SizeChangedEventArgs e)
         {
             DopasowanieCmdBar();
         }
     }
 }
 
-// podmiana API SystemXml na API Windows.Data.Xml.Dom, uproszczenie #if
-// niepotrzebne, bo w 3.8.6 jest już Windows.XML
-//static partial class Extensions
-//{
-//    public static string GetXml(this System.Xml.XmlNode oNode)
-//    {
-//        return oNode.OuterXml;
-//    }
-
-//    public static System.Xml.XmlNode ElementAt(this System.Xml.XmlNodeList oNodes, int iIndex)
-//    {
-//        return oNodes.Item(iIndex);
-//    }
-
-//}

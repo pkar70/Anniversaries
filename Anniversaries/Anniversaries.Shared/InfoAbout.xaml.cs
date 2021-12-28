@@ -15,11 +15,10 @@ namespace Anniversaries
             this.InitializeComponent();
         }
 
-        // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=234238
 
         private void bInfoOk(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
-            this.Frame.Navigate(typeof(MainPage));
+            this.Frame.GoBack(); // .Navigate(typeof(MainPage));
         }
 
         private void Page_Load(object sender, Windows.UI.Xaml.RoutedEventArgs e)
@@ -34,7 +33,6 @@ namespace Anniversaries
             uiWikiLink.Content = sTmp;
             uiWikiLink.NavigateUri = new Uri(sTmp);
 
-            
         }
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously - dla Android

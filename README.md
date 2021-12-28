@@ -17,4 +17,4 @@ Primary version.
  http://beskid.geo.uj.edu.pl/p/ms/wasm/Anniversaries/
 
 
- For history (in Polish), see MainPage.xaml.cs version.
+ For history (in Polish), see MainPage.xaml.cs file.

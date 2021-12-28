@@ -285,4 +285,28 @@
   <data name="resDayM.Text" xml:space="preserve">
     <value>Wybierz dzień</value>
   </data>
+  <data name="uiSetLangEl.OffContent" xml:space="preserve">
+    <value>grecki</value>
+  </data>
+  <data name="uiSetLangUk.OffContent" xml:space="preserve">
+    <value>ukraiński</value>
+  </data>
+  <data name="uiSetLangHe.OffContent" xml:space="preserve">
+    <value>hebrajski</value>
+  </data>
+  <data name="errNoData" xml:space="preserve">
+    <value>Nie mam co wyświetlić?</value>
+  </data>
+  <data name="noTabSelected" xml:space="preserve">
+    <value>Włącz któryś typ danych (zakładkę)</value>
+  </data>
+  <data name="uiSetLangAr.OffContent" xml:space="preserve">
+    <value>arabski</value>
+  </data>
+  <data name="uiSetLangGe.OffContent" xml:space="preserve">
+    <value>georgian</value>
+  </data>
+  <data name="uiSetLangJa.OffContent" xml:space="preserve">
+    <value>japoński</value>
+  </data>
 </root>

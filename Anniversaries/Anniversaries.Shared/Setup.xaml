@@ -28,7 +28,8 @@
                 <ColumnDefinition/>
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
-            <StackPanel Grid.Column="0" VerticalAlignment="Center" >
+            <StackPanel Grid.Column="0" VerticalAlignment="Center" Name="uiTabOnOff">
+                <!-- dla automatu zapisującego: musi być name=uiSetTabX -->
                 <ToggleSwitch x:Uid="uiSetTabE" x:Name="uiSetTabE" Header="Active tabs" OffContent="events" OnContent="Events" IsOn="True" Margin="10,10,0,0" HorizontalAlignment="Center"  />
                 <ToggleSwitch x:Uid="uiSetTabB" x:Name="uiSetTabB" OffContent="births" OnContent="Births" IsOn="True" Margin="10,10,0,0" HorizontalAlignment="Center" />
                 <ToggleSwitch x:Uid="uiSetTabD" x:Name="uiSetTabD" OffContent="deaths" OnContent="Deaths" IsOn="True" Margin="10,10,0,0" HorizontalAlignment="Center" />
@@ -41,14 +42,23 @@
                 <ToggleSwitch Name="uiAutoLoad" HorizontalAlignment="Center" />
             </StackPanel>
 
-            <StackPanel Grid.Column="1" VerticalAlignment="Center" >
-                <ToggleSwitch x:Uid="uiSetLangEn" x:Name="uiSetLangEn" Header="Active languages" OffContent="english" OnContent="English" IsOn="True" Margin="10,10,0,0" HorizontalAlignment="Center" IsEnabled="False"  />
-                <ToggleSwitch x:Uid="uiSetLangDe" x:Name="uiSetLangDe" OffContent="german" OnContent="Deutsch" IsOn="True" Margin="10,10,0,0" HorizontalAlignment="Center"   />
-                <ToggleSwitch x:Uid="uiSetLangPl" x:Name="uiSetLangPl" OffContent="polish" OnContent="Polski" IsOn="True" Margin="10,10,0,0" HorizontalAlignment="Center" />
-                <ToggleSwitch x:Uid="uiSetLangFr" x:Name="uiSetLangFr" OffContent="french" OnContent="Français" IsOn="True" Margin="10,10,0,0" HorizontalAlignment="Center" />
-                <ToggleSwitch x:Uid="uiSetLangEs" x:Name="uiSetLangEs" OffContent="spanish" OnContent="Español" IsOn="True" Margin="10,10,0,0" HorizontalAlignment="Center" />
-                <ToggleSwitch x:Uid="uiSetLangRu" x:Name="uiSetLangRu" OffContent="russian" OnContent="Русский" IsOn="True" Margin="10,10,0,0" HorizontalAlignment="Center" />
-                <win:TextBlock x:Uid="uiSetAddLang" HorizontalAlignment="Left" TextWrapping="Wrap" Margin="10,40,0,0" Text="If you want me to add another language, please use FeedBack Hub" VerticalAlignment="Top"/>
+            <StackPanel Grid.Column="1" VerticalAlignment="Center" Name="uiLangOnOff" >
+                <!-- dla automatu zapisującego: musi być name=uiSetLangXX , en jest poza (nie może być w zmiennej) -->
+                <ToggleSwitch x:Uid="uiSetLangEn" x:Name="uiSetEn" Header="Active languages" OffContent="english" OnContent="English" IsOn="True" Margin="10,10,0,0" HorizontalAlignment="Center" IsEnabled="False"  />
+                <ToggleSwitch x:Uid="uiSetLangDe" x:Name="uiSetLangDe" OffContent="german" OnContent="Deutsch" Margin="10,5,0,0" HorizontalAlignment="Center"   />
+                <ToggleSwitch x:Uid="uiSetLangEs" x:Name="uiSetLangEs" OffContent="spanish" OnContent="Español" Margin="10,5,0,0" HorizontalAlignment="Center" />
+                <ToggleSwitch x:Uid="uiSetLangFr" x:Name="uiSetLangFr" OffContent="french" OnContent="Français" Margin="10,5,0,0" HorizontalAlignment="Center" />
+                <ToggleSwitch x:Uid="uiSetLangPl" x:Name="uiSetLangPl" OffContent="polish" OnContent="Polski" Margin="10,5,0,0" HorizontalAlignment="Center" />
+                <ToggleSwitch x:Uid="uiSetLangRu" x:Name="uiSetLangRu" OffContent="russian" OnContent="Русский" Margin="10,5,0,0" HorizontalAlignment="Center" />
+                <ToggleSwitch x:Uid="uiSetLangUk" x:Name="uiSetLangUk" OffContent="ukrainian" OnContent="Українська" Margin="10,5,0,0" HorizontalAlignment="Center" />
+                <ToggleSwitch x:Uid="uiSetLangEl" x:Name="uiSetLangEl" OffContent="greek" OnContent="Ελληνικά" Margin="10,5,0,0" HorizontalAlignment="Center" />
+                <ToggleSwitch x:Uid="uiSetLangHe" x:Name="uiSetLangHe" OffContent="hebrew" OnContent="עברית" Margin="10,5,0,0" HorizontalAlignment="Center" />
+                <ToggleSwitch x:Uid="uiSetLangJa" x:Name="uiSetLangJa" OffContent="japanese" OnContent="日本語" Margin="10,5,0,0" HorizontalAlignment="Center" />
+                <ToggleSwitch x:Uid="uiSetLangAr" x:Name="uiSetLangAr" OffContent="arabic" OnContent="العربية" Margin="10,5,0,0" HorizontalAlignment="Center" />
+                <ToggleSwitch x:Uid="uiSetLangKa" x:Name="uiSetLangKa" OffContent="georgian" OnContent="ქართული" Margin="10,5,0,0" HorizontalAlignment="Center" />
+                <ToggleSwitch x:Uid="uiSetLangKo" x:Name="uiSetLangKo" OffContent="korean" OnContent="한국어" Margin="10,5,0,0" HorizontalAlignment="Center" />
+                <ToggleSwitch x:Uid="uiSetLangZh" x:Name="uiSetLangZh" OffContent="chineese" OnContent="中文" Margin="10,5,0,0" HorizontalAlignment="Center" />
+                <win:TextBlock x:Uid="uiSetAddLang" HorizontalAlignment="Left" TextWrapping="Wrap" Margin="10,20,0,0" Text="If you want me to add another language, please use FeedBack Hub" VerticalAlignment="Top"/>
             </StackPanel>
         </Grid>
 
