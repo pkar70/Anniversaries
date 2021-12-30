@@ -27,7 +27,7 @@
                 <ColumnDefinition Width="120" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-            <TextBlock Text=" " Name="tbDzien" Margin="20,0,0,0" VerticalAlignment="Center" />
+            <TextBlock Text=" " Name="tbDzien" Margin="10,0,0,0" VerticalAlignment="Center" />
             <StackPanel Orientation="Horizontal" Grid.Column="1">
 
                 <AppBarSeparator Name="uiBarSeparat1"/>

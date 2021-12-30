@@ -60,7 +60,7 @@
     <AndroidEnableProfiledAot>true</AndroidEnableProfiledAot>
     <AndroidSupportedAbis>armeabi-v7a;x86;x86_64;arm64-v8a</AndroidSupportedAbis>
     <AndroidDexTool>d8</AndroidDexTool>
-    <AndroidPackageFormat>aab</AndroidPackageFormat>
+    <AndroidPackageFormat>apk</AndroidPackageFormat>
     <AndroidUseAapt2>true</AndroidUseAapt2>
   </PropertyGroup>
   <ItemGroup>
@@ -85,7 +85,9 @@
     <PackageReference Include="System.Net.Http">
       <Version>4.3.4</Version>
     </PackageReference>
-    <PackageReference Include="Uno.UI" Version="4.0.11" />
+    <PackageReference Include="Uno.UI">
+      <Version>3.11.6</Version>
+    </PackageReference>
     <PackageReference Include="Uno.UniversalImageLoader" Version="1.9.35" />
   </ItemGroup>
   <ItemGroup>
@@ -118,5 +120,5 @@
   <Import Project="..\Anniversaries.Shared\Anniversaries.Shared.projitems" Label="Shared" Condition="Exists('..\Anniversaries.Shared\Anniversaries.Shared.projitems')" />
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <!-- This will force the generation of the APK when not buildig inside visual studio -->
-  <Target Name="GenerateBuild" DependsOnTargets="SignAndroidPackage" AfterTargets="Build" Condition="'$(BuildingInsideVisualStudio)'==''" />
+  <!-- <Target Name="GenerateBuild" DependsOnTargets="SignAndroidPackage" AfterTargets="Build" Condition="'$(BuildingInsideVisualStudio)'==''" /> -->
 </Project>

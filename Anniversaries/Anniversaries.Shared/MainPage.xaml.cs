@@ -5,6 +5,12 @@ ANDRO UNO BUG:
 * AppBar: zepsute ikonki [workaround], niepotrzebny button rozwijania ze złą ikonką (a i tak nie działa)
 * CommandBar: pokazuje tylko SecondaryCommands (brak obsługi innych niż BitmapIcon)
 
+2021.12.29
+* aktualizacja dla Android 12, oraz aktualizacja Logging (see Uno.txt)
+* błąd UNO: AppBarToggleButton.IsChecked nie działa
+* błąd regression (Droid): nie włączał secondary commands - ale to był mój błąd, wygaszałem uiAndroidSec.
+* InfoAbout - dodałem nazwę app oraz AppVersion, opis z pionowego środka na górę.
+
 STORE 2112
 
 2021.12.28
@@ -204,15 +210,15 @@ namespace Anniversaries
             // wszystkie H2 proszę przeiterować
             // w każdym z nich, w inner html, sprawdzam istnienie sFrom
 
-            foreach(HtmlAgilityPack.HtmlNode oH2 in htmlDoc.DocumentNode.SelectNodes("//h2"))
+            foreach (HtmlAgilityPack.HtmlNode oH2 in htmlDoc.DocumentNode.SelectNodes("//h2"))
             {
-                if(oH2.InnerText.Contains(sFrom))
+                if (oH2.InnerText.Contains(sFrom))
                 {
                     // mam to! znaczy odpowiedni H2
                     // sklejaj wszystkie outer aż do następnego H2
                     string sRet = "";
                     HtmlAgilityPack.HtmlNode oEntry = oH2.NextSibling;
-                    while(oEntry != null)
+                    while (oEntry != null)
                     {
                         if (oEntry.Name == "h2")
                         {
@@ -229,13 +235,13 @@ namespace Anniversaries
                         if (oEntry.OuterHtml.Trim() == "") bSkip = true;
 
                         // dla Ukrainy takie coś - mają pierwsze <p>, *TODO* tylko pierwsze <p> pomijać
-                        if (sLang =="uk" && oEntry.Name == "p") bSkip = true;
+                        if (sLang == "uk" && oEntry.Name == "p") bSkip = true;
 
-                        if(oEntry.Name=="h4") bSkip = true; // dla DE
+                        if (oEntry.Name == "h4") bSkip = true; // dla DE
                         if (oEntry.Name == "dl") bSkip = true; // dla RU
 
                         if (!bSkip) sRet += oEntry.OuterHtml.Trim();
-                        
+
                         oEntry = oEntry.NextSibling;
                     }
                 }
@@ -304,7 +310,7 @@ namespace Anniversaries
             // usuwamy podrozdziały (h3)
             // dla: EN, RU, UK
             UsunElementy(oH2, "h3", "");
-            
+
             // pod-nagłówki h4 (DE)
             UsunElementy(oH2, "h4", "");
 
@@ -328,7 +334,7 @@ namespace Anniversaries
 
             return oH2;
         }
-    
+
 
 
         private static int IndexOfOr99(string sTxt, string sSubstring)
@@ -348,7 +354,7 @@ namespace Anniversaries
             sTxt = sTxt.Trim();    // " 422 -" wydarzenia na swiecie pl.wikipedia
 
             iInd = sTxt.IndexOf((char)160); // rosyjskojezyczna ma ROK<160><kreska><spacja>
-            if(iInd == -1) iInd = 99;
+            if (iInd == -1) iInd = 99;
             iInd = Math.Min(iInd, IndexOfOr99(sTxt, " "));
             iInd = Math.Min(iInd, IndexOfOr99(sTxt, ":"));
             iInd = Math.Min(iInd, IndexOfOr99(sTxt, "#"));
@@ -359,7 +365,7 @@ namespace Anniversaries
 
             if ((iInd > 0) & (iInd < 6))
             {
-                if(!int.TryParse(sTxt.Substring(0, iInd), out iRok))
+                if (!int.TryParse(sTxt.Substring(0, iInd), out iRok))
                     System.Diagnostics.Debug.Write("Error CInt(" + sTxt.Substring(0, iInd) + ")");
 
                 sTxt = sTxt.Substring(iInd);
@@ -387,15 +393,15 @@ namespace Anniversaries
         {
             var oRetDoc = new HtmlAgilityPack.HtmlDocument();
 
-            foreach ( var oNode in oDom.DocumentNode.SelectNodes("//" + sSplitTag))
+            foreach (var oNode in oDom.DocumentNode.SelectNodes("//" + sSplitTag))
             {
-                string sTmpDoc = ""; 
+                string sTmpDoc = "";
                 var oEntry = oNode.NextSibling;
                 while (oEntry != null)
                 {
                     if (oEntry.Name == "h2" || oEntry.Name == sSplitTag) break;
 
-                    if(oEntry.Name == "ul")
+                    if (oEntry.Name == "ul")
                     {
                         foreach (var oItem in oEntry.ChildNodes)
                             sTmpDoc += oItem.OuterHtml;
@@ -452,7 +458,7 @@ namespace Anniversaries
             HtmlAgilityPack.HtmlNode oRoot1 = oDom1.DocumentNode; // <root>...
             if (oRoot1 is null) return oDom2;
             HtmlAgilityPack.HtmlNode oRoot2 = oDom2.DocumentNode;
-            if(oRoot2 is null) return oDom1;
+            if (oRoot2 is null) return oDom1;
 
             HtmlAgilityPack.HtmlNodeCollection oNodes1 = oRoot1.ChildNodes; // wewnątrz #document powinien być tylko <root>
             HtmlAgilityPack.HtmlNodeCollection oNodes2 = oRoot2.ChildNodes;
@@ -469,7 +475,7 @@ namespace Anniversaries
             oNodes1 = oNodes1.ElementAt(0).ChildNodes; // czyli <root> 
             oNodes2 = oNodes2.ElementAt(0).ChildNodes;
 
-            if (oNodes1.Count <1) return oDom2;
+            if (oNodes1.Count < 1) return oDom2;
             if (oNodes2.Count < 1) return oDom1;
             if (oNodes1.Count > 1 || oNodes2.Count > 1)
             {
@@ -477,7 +483,7 @@ namespace Anniversaries
                 p.k.DebugOut("Something is wrong - should be only one item inside <root>!");
 
                 p.k.DebugOut("oNodes1:");
-                foreach(var oItem in oNodes1)
+                foreach (var oItem in oNodes1)
                 {
                     p.k.DebugOut(oItem.Name);
                 }
@@ -852,7 +858,7 @@ namespace Anniversaries
             mDeaths = new HtmlAgilityPack.HtmlDocument();
             // mHolid = "";
             tbDzien.Text = "Reading EN...";
-            
+
             string sTxt = await ReadOneLang(sUrl).ConfigureAwait(true);
 
             sUrl = p.k.GetSettingsString("EnabledLanguages", "pl de fr es ru");
@@ -881,12 +887,12 @@ namespace Anniversaries
             //    bZaden = false;
             //    bHolid_Click(sender, e);
             //}
-            if (bBirth.IsChecked.HasValue && bBirth.IsChecked.Value )
+            if (bBirth.IsChecked.HasValue && bBirth.IsChecked.Value)
             {
                 bZaden = false;
                 bBirth_Click(sender, e);
             }
-            if (bDeath.IsChecked.HasValue && bDeath.IsChecked.Value )
+            if (bDeath.IsChecked.HasValue && bDeath.IsChecked.Value)
             {
                 bZaden = false;
                 bDeath_Click(sender, e);
@@ -935,16 +941,16 @@ namespace Anniversaries
             //bDeathAndroBar.IsChecked = bDea;
 
             // oraz z menu
-//#if NETFX_CORE
+            //#if NETFX_CORE
             uiSelEvent.IsChecked = bEv;
             uiSelBirth.IsChecked = bBir;
             uiSelDeath.IsChecked = bDea;
-//#endif 
+            //#endif 
         }
 
-            private void bEvent_Click(object sender, RoutedEventArgs e)
+        private void bEvent_Click(object sender, RoutedEventArgs e)
         {
-                SetWebView(mEvents.DocumentNode, ""); // "<base href=""https://en.wikipedia.org/"">")
+            SetWebView(mEvents.DocumentNode, ""); // "<base href=""https://en.wikipedia.org/"">")
             ToggleButtony(true, false, false);
         }
         //private void bHolid_Click(object sender, RoutedEventArgs e)
@@ -981,7 +987,7 @@ namespace Anniversaries
             bool bUwp = p.k.GetPlatform("uwp");
 
             //if (pkar.GetPlatform("uwp"))
-                iIconWidth = (int)bRefresh.ActualWidth; // zakładam że to będzie zawsze widoczne, czyli dobrze policzy
+            iIconWidth = (int)bRefresh.ActualWidth; // zakładam że to będzie zawsze widoczne, czyli dobrze policzy
             //else
             //    iIconWidth = 80;    // *TODO* jest na sztywno, bo w Android się trudno połapać :) [bo nie wiadomo co będzie pokazane]
             iGridWidth = (int)uiGrid.ActualWidth;
@@ -993,9 +999,18 @@ namespace Anniversaries
             else
                 iGridWidth -= 120;
 
-            int iIcons = (int)Math.Floor((double)iGridWidth / iIconWidth);  
+            int iIcons = (int)Math.Floor((double)iGridWidth / iIconWidth);
             // Lumia532: 320 - 48 / 68 = 4: zgadza się :)
             return iIcons;
+        }
+
+        private void DopasowanieCmdBar_JestSecondary(bool bShowSecondaryCommands)
+        {
+            // guzik wejścia do Secondary menu
+            Visibility bVis = (bShowSecondaryCommands) ? Visibility.Visible : Visibility.Collapsed;
+#if !NETFX_CORE
+            uiAndroSec.Visibility = bVis;
+#endif
         }
 
         private void DopasowanieCmdBar_GoPages(bool bAsPrimaryCmds)
@@ -1008,6 +1023,8 @@ namespace Anniversaries
             bVis = (!bAsPrimaryCmds) ? Visibility.Visible : Visibility.Collapsed;
             uiGoSettSec.Visibility = bVis;
             uiGoInfoSec.Visibility = bVis;
+
+            DopasowanieCmdBar_JestSecondary(!bAsPrimaryCmds);
         }
 
         private void DopasowanieCmdBar_SelektorStrony(bool bAsPrimaryCmds)
@@ -1022,6 +1039,7 @@ namespace Anniversaries
             bVis = (!bAsPrimaryCmds) ? Visibility.Visible : Visibility.Collapsed;
             uiSelektorStrony.Visibility = bVis;
 
+            DopasowanieCmdBar_JestSecondary(!bAsPrimaryCmds);
         }
 
         private void DopasowanieCmdBar_Kalendarz(bool bAsPrimaryCmds, bool bAndroSec)
@@ -1031,10 +1049,8 @@ namespace Anniversaries
 
             bVis = (!bAsPrimaryCmds) ? Visibility.Visible : Visibility.Collapsed;
             uiKalendSec.Visibility = bVis;
-#if !NETFX_CORE
-            bVis = (!bAndroSec) ? Visibility.Visible : Visibility.Collapsed;
-            uiAndroSec.Visibility = bVis;
-#endif
+
+            DopasowanieCmdBar_JestSecondary(!bAsPrimaryCmds);
         }
 
         private void DopasowanieCmdBar()

@@ -24,6 +24,8 @@ namespace Anniversaries
         private void Page_Load(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
 
+            p.k.GetAppVers(null);
+
             string sTmp;
 
             sTmp = "https://en.wikipedia.org/wiki/";

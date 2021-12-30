@@ -9,7 +9,13 @@
     xmlns:not_win="http://uno.ui/not_win"
     mc:Ignorable="d not_win" Loaded="Page_Load">
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" >
-                <StackPanel Grid.Column="0" VerticalAlignment="Center" >
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition  />
+        </Grid.RowDefinitions>
+        <TextBlock Text="Anniversaries" FontSize="20" HorizontalAlignment="Center" />
+        <StackPanel Grid.Row="2" Margin="0,30,0,0" >
                     <TextBlock x:Uid="infoLine1" Margin="10,10,10,10" TextWrapping="Wrap" Text='  This simple app merges information from "today" Wikipedia pages for some languages. In this way you get two benefits:' />
                     <TextBlock x:Uid="infoLine2" Margin="10,10,10,10" TextWrapping="Wrap" Text='  1) many more entries that in any single language;' />
                     <TextBlock x:Uid="infoLine3" Margin="10,10,10,10" TextWrapping="Wrap" Text='  2) you can see which events are important for which language group;' />
