@@ -15,7 +15,7 @@ Public NotInheritable Class InfoAbout
         Dim sTmp As String
 
         sTmp = "https://en.wikipedia.org/wiki/"
-        sTmp = sTmp & MainPage.MonthNo2EnName(Date.Now.Month)
+        sTmp = sTmp & VBlibekStd.MainPage.MonthNo2EnName(Date.Now.Month)
         sTmp = sTmp & "_" & Date.Now.Day
 
         uiWikiLink.Content = sTmp

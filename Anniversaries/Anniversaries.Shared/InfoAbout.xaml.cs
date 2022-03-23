@@ -29,7 +29,7 @@ namespace Anniversaries
             string sTmp;
 
             sTmp = "https://en.wikipedia.org/wiki/";
-            sTmp = sTmp + MainPage.MonthNo2EnName(DateTime.Now.Month);
+            sTmp = sTmp + VBlibekStd.MainPage.MonthNo2EnName(DateTime.Now.Month);
             sTmp = sTmp + "_" + DateTime.Now.Day.ToString(System.Globalization.CultureInfo.InvariantCulture);
 
             uiWikiLink.Content = sTmp;
