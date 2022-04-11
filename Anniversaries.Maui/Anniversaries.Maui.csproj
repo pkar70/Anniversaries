@@ -74,7 +74,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\VBlibekStd\VBlibekStd_14.vbproj" />
+	  <ProjectReference Include="..\VBlibekStd\VBlibekStd_20.vbproj" />
 	</ItemGroup>
 
 	<PropertyGroup Condition="$(TargetFramework.Contains('-windows'))">

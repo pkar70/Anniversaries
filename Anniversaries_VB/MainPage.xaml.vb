@@ -5,25 +5,17 @@
 '   STORE: 1.7.1.0, 2018.09.03
 
 
-Imports Windows.Data.Xml.Dom
 Imports System.Windows
-Imports VBlibekStd.Extensions
+Imports VBlib.Extensions
+Imports vb14 = VBlib.pkarlibmodule14
+Imports inLib = VBlib.MainPage
 
 
 Public NotInheritable Class MainPage
     Inherits Page
 
-    'Dim mEvents As String = ""
-    'Dim mHolid As String = ""
-    'Dim mBirths As String = ""
-    'Dim mDeaths As String = ""
-    Dim mObceMiesiace As String = ""
     ' zmienne w Setup dostepne
     Dim mDate As DateTimeOffset
-    'Dim mObceJezyki As String = "pl de fr es ru"
-    Dim mPreferredLang As String = "pl"
-    Dim mCurrLang As String = ""
-    Dim mCurrPart As String = ""
 
     Private Sub bSetup_Click(sender As Object, e As RoutedEventArgs)
         Me.Frame.Navigate(GetType(Setup))
@@ -50,20 +42,20 @@ Public NotInheritable Class MainPage
     ' Private Async Function GetHtmlPage(sUrl As String) As Task(Of String)
 
     Private Async Sub bRead_Click(sender As Object, e As RoutedEventArgs)
-        Dim sUrl As String = ""
+        Dim sUrl As String = "https://en.wikipedia.org/wiki/" &
+            inLib.MonthNo2EnName(mDate.Month) &
+            "_" & mDate.Day.ToString(Globalization.CultureInfo.InvariantCulture)
 
-        sUrl = "https://en.wikipedia.org/wiki/" & VBlibekStd.MainPage.MonthNo2EnName(mDate.Month) & "_" & mDate.Day.ToString
-        VBlibekStd.MainPage.mEvents = New HtmlAgilityPack.HtmlDocument()
-        VBlibekStd.MainPage.mBirths = New HtmlAgilityPack.HtmlDocument()
-        VBlibekStd.MainPage.mDeaths = New HtmlAgilityPack.HtmlDocument()
+        inLib.bRead_Click_Reset()
         tbDzien.Text = "Reading EN..."
-        Dim sTxt As String = Await VBlibekStd.MainPage.ReadOneLang(sUrl, App.GetSettingsString("EnabledTabs", "EBD"))
+
+        Dim sTxt As String = Await inLib.ReadOneLang(New Uri(sUrl), App.GetSettingsString("EnabledTabs", "EBD"))
 
         sUrl = App.GetSettingsString("EnabledLanguages", "pl de fr es ru")
-        Dim lList As List(Of String) = VBlibekStd.MainPage.ExtractLangLinks(sUrl, sTxt)
+        Dim lList As List(Of String) = inLib.ExtractLangLinks(sUrl, sTxt)
         For Each sUri As String In lList
             tbDzien.Text = "Reading " & sUri.Substring(8, 2).ToUpperInvariant & "..."
-            Await VBlibekStd.MainPage.ReadOneLang(sUri, App.GetSettingsString("EnabledTabs", "EBD"))
+            Await inLib.ReadOneLang(New Uri(sUri), App.GetSettingsString("EnabledTabs", "EBD"))
         Next
 
         Dim bZaden As Boolean = True
@@ -86,7 +78,7 @@ Public NotInheritable Class MainPage
 
         If bZaden Then bEvent_Click(sender, e)
 
-        tbDzien.Text = mDate.ToString("d MMMM")  ' .Day.ToString & " " & MonthNo2PlName(mDate.Month)
+        tbDzien.Text = mDate.ToString("d MMMM", Globalization.CultureInfo.InvariantCulture)  ' .Day.ToString & " " & MonthNo2PlName(mDate.Month)
 
         'jesli jest: http://brewiarz.pl/ix_17/1009/index.php3
         'else http://brewiarz.pl/ix_17/0909p/index.php3
@@ -100,15 +92,6 @@ Public NotInheritable Class MainPage
         wbViewer.NavigateToString(sHtml)
     End Sub
 
-    Private Sub SetWebView(oDoc As HtmlAgilityPack.HtmlNode, sHead As String)
-        If oDoc.FirstChild Is Nothing Then
-            ' App.DialogBoxRes("errNoData")
-        Else
-            SetWebView(oDoc.OuterHtml, sHead)
-        End If
-
-    End Sub
-
     Private Sub ToggleButtony(bEv As Boolean, bBir As Boolean, bDea As Boolean)
         '// primary
         bEvent.IsChecked = bEv
@@ -117,8 +100,18 @@ Public NotInheritable Class MainPage
         bDeath.IsChecked = bDea
     End Sub
 
+
+    Private Sub SetWebView(sDoc As String)
+        ' head (kiedyś): "<base href=""https://en.wikipedia.org/"">"
+        If String.IsNullOrEmpty(sDoc) Then
+            vb14.DialogBoxRes("errNoData")
+        Else
+            SetWebView(sDoc, "")
+        End If
+    End Sub
+
     Private Sub bEvent_Click(sender As Object, e As RoutedEventArgs)
-        SetWebView(VBlibekStd.MainPage.mEvents.DocumentNode, "") ' "<base href=""https://en.wikipedia.org/"">")
+        SetWebView(inLib.GetContentForWebview("E"))
         ToggleButtony(True, False, False)
     End Sub
     Private Sub bHolid_Click(sender As Object, e As RoutedEventArgs)
@@ -129,11 +122,11 @@ Public NotInheritable Class MainPage
         'bDeath.IsChecked = False
     End Sub
     Private Sub bBirth_Click(sender As Object, e As RoutedEventArgs)
-        SetWebView(VBlibekStd.MainPage.mBirths.DocumentNode, "") ' "<base href=""https://en.wikipedia.org/"">"
+        SetWebView(inLib.GetContentForWebview("B"))
         ToggleButtony(False, True, False)
     End Sub
     Private Sub bDeath_Click(sender As Object, e As RoutedEventArgs)
-        SetWebView(VBlibekStd.MainPage.mDeaths.DocumentNode, "") ' "<base href=""https://en.wikipedia.org/"">")
+        SetWebView(inLib.GetContentForWebview("D"))
         ToggleButtony(False, False, True)
     End Sub
 
@@ -142,16 +135,17 @@ Public NotInheritable Class MainPage
         Dim sTmp As String
         sTmp = App.GetSettingsString("EnabledTabs", "EBD")
 
-        bEvent.IsEnabled = sTmp.Contains("E")
-        bBirth.IsEnabled = sTmp.Contains("B")
-        bDeath.IsEnabled = sTmp.Contains("D")
-        bHolid.IsEnabled = sTmp.Contains("H")
+        bEvent.IsEnabled = sTmp.Contains("E", StringComparison.Ordinal)
+        bBirth.IsEnabled = sTmp.Contains("B", StringComparison.Ordinal)
+        bDeath.IsEnabled = sTmp.Contains("D", StringComparison.Ordinal)
+        bHolid.IsEnabled = sTmp.Contains("H", StringComparison.Ordinal)
 
         mDate = Date.Now
         uiDay.Date = mDate
 
     End Sub
 
+    <CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static", Justification:="<Pending>")>
     Private Sub wbViewer_NavigationStarting(sender As WebView, args As WebViewNavigationStartingEventArgs) Handles wbViewer.NavigationStarting
 
         If args.Uri Is Nothing Then Exit Sub
@@ -160,7 +154,9 @@ Public NotInheritable Class MainPage
 
         If Not App.GetSettingsBool("LinksActive") Then Exit Sub
 
+#Disable Warning BC42358 ' Because this call is not awaited, execution of the current method continues before the call is completed
         Windows.System.Launcher.LaunchUriAsync(args.Uri)
+#Enable Warning BC42358 ' Because this call is not awaited, execution of the current method continues before the call is completed
 
     End Sub
 

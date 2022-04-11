@@ -117,8 +117,20 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="errNoData" xml:space="preserve">
+    <value>No data loaded?</value>
+  </data>
   <data name="msgYes" xml:space="preserve">
     <value>Yes</value>
+  </data>
+  <data name="noTabSelected" xml:space="preserve">
+    <value>Please, switch on at least one data type (tab)</value>
+  </data>
+  <data name="uiSetAddLang_Text" xml:space="preserve">
+    <value>If you want me to add another language, please use FeedBack Hub</value>
+  </data>
+  <data name="uiSetLang_Hdr" xml:space="preserve">
+    <value>Active languages</value>
   </data>
   <data name="_lang" xml:space="preserve">
     <value>EN</value>

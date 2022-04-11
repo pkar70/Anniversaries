@@ -1,0 +1,130 @@
+﻿
+ ANDRO UNO BUG:
+* BottomAppBar: w ogóle nie działa
+* AppBar: zepsute ikonki [workaround], niepotrzebny button rozwijania ze złą ikonką (a i tak nie działa)
+* CommandBar: pokazuje tylko SecondaryCommands (brak obsługi innych niż BitmapIcon)
+
+
+2022.04.10
+* wydzielenie historii do oddzielnego pliku (tego właśnie), z różnych źródeł
+* plik defaults.ini z defaultami dla Settings
+* suppression i poprawki (nowy Analyzer)
+* z App usunięty HtmlAgile (już teraz tylko w VbLib)
+
+2022.04.04
+* jako że zrobiłem porządek z VBlib.pkarmodule i pkarmodule.cs, to seria zmian - sprawdzone, poprawione, działa.
+
+2022.01.26
+* migracja z powrotem części kodu do VB (VB_Lib, .Net standard 1.4, widoczne w VB UWP, w Uno UWP i Droid, oraz w MAUI
+
+2021.12.29
+* aktualizacja dla Android 12, oraz aktualizacja Logging (see Uno.txt)
+* błąd UNO: AppBarToggleButton.IsChecked nie działa
+* błąd regression (Droid): nie włączał secondary commands - ale to był mój błąd, wygaszałem uiAndroidSec.
+* InfoAbout - dodałem nazwę app oraz AppVersion, opis z pionowego środka na górę.
+
+STORE 2112
+
+2021.12.28
+* zmiana kodu SetLang i SetTab - teraz zmiana potrzebna tylko w Setup.Xaml oraz w MainPage.ReadLang (nie trzeba zmnian w Setup.Xaml.vb)
+* próba dodania HEbrew - udana :)
+* więc jeszcze arabski oraz japoński, gruziński. Plus chiński i koreanski (koreanski ma takze urodziny postaci fikcyjnych :) ) 
+* przeczyszczenie plików z tego, co było starą wersją (XML oraz ręczne cięcie HTMLa; i różne zaszłości)
+* bugfix: nie przejmowało NavigationStarting, więc nie blokowało (pewnie odkąd przeszło z VB na C#)
+
+2021.12.27
+* Uno 4.0.11, tylko dla rekompilacji i kontroli, ale sprawdzam zachowanie także na UWP - są zmiany struktury stron...
+* przerabiam na używanie XmlDocument - ale to nie potrafi zeżreć znaków z innych niż PL i EN, więc:
+* dodaję HtmlAgilityPack, i mam HtmlDocument
+* przeróbka struktury na bardziej uniwersalną (wygodniejsze usuwanie zbędnych <tag>)
+* dodaję Ukraina oraz Grecja (hebrajski byłby fajny, ale on jest pisany od drugiej strony!)
+
+2021.06.18
+* Uno 3.8.6, już jest całość w Uno.Master
+* dodaję Extensions dla XML, żeby zmniejszyć liczbę #if - e, lipa, niepotrzebne, bo wszak w 3.8.6 jest już Windows.XML
+
+2021.04.03
+* Uno 3.6.6
+
+2021.02.27
+* UNO 3.5.1, Android 11
+
+STORE ANDROID 2010.1
+
+2020.10.28
+* LINK pkModuleShared.cs [..\..\..\_mojeSuby\pkarModule-Uno3-1-6.cs]
+*   nie przenoszę ProgBar na modułowy, bo w Android musi być "piętro wyżej" (jest CommandBar najniżej)
+*   nie da się przejść na CommandBar, bo nie ma SecondaryCommands, a tu jest tego dużo
+*   dodałem brakujący font (dla Android)
+
+2020.10.27
+ * [Android] przechodze na Uno 3.1.6 (z dodatkami: 3.2.0-dev.265)
+
+STORE ANDROID 2009.2
+
+2020.08.28
+ * podmieniam Uno na bazujące na 3.0.1515 (bo gogus wymusza kompilacje target Android 10)
+
+STORE ANDROID 2002.1
+
+2020.02.12
+ * podmieniam Uno na bazująca na 945 - aktualizacja pkModuleShared (dużo już wprowadziłem do Uno), usuwam niepotrzebne Nugety
+ * [Android] splashscreen
+
+STORE ANDROID 1912.1
+
+2019.12.22
+* nowa kompilacja Uno, bazująca na 2.1.0-dev.408 (tylko CalendarDatePicker własny,  WebViewer.NavigateToString oraz MenuFlyoutitem.click już w base Uno)
+
+2019.10.13
+* dodałem do Uno.UI CalendarDatePicker, więc upraszczam kod - bez DatePicker
+
+STORE 10.1910
+
+2019.10.06
+* [andro] przełączanie wedle szerokości (emulacja BottomCommandBar w AppBar)
+* [!uwp] Setup: znika tekst o Feedback Hub
+
+2019.10.05
+* [xaml] warunkowa kompilacja XAML (prefix), co robi czytelniejszym kod
+
+2019.09.13
+* MainPage progress bar podczas ładowania (uiProgBar)
+
+2019.09.12
+* [andro] MainPage:OnDateChanged - wykorzystanie sender zamiast nazw obiektów XAML
+* [uwp] MainPage:BottomAppBar: przełączanie wedle szerokości
+* [andro] MainPage:BottomAppBar: przełączanie wedle UWP/Andro (gdy naprawią CommandBar)
+
+2019.09.11
+* [andro] emulacja BottomAppBar jako AppBar (początek) - bez uwzględniania szerokości ekranu
+* [andro] workaround do zepsutych ikonek w AppBar (FontIcon zamiast SymbolIcon), Uno Pull Request
+
+2019.09.10
+* [all] opcja "autoload" danego dnia
+
+STORE UWP 10.1909.1, 2019.09.02
+
+2019.09.05
+* w MainPage:XAML są dwa guziki, CalendarDatePicker i DatePicker
+* funkcje które nie korzystają z this - dodaję im static
+
+2019.09.02
+ * Setup: usunięcie Toggle dla Holidays
+
+2019.08.27
+ * BackButton
+
+2019.08.26
+ * próba przeniesienia do Uno, bez pośredniego VC
+ * MainPage: usunięcie guzika Holidays, bo i tak to nie działało
+ * w Setup:Save SetSettings localConfig=true (że było lokalnie, i nie trzeba wczytywać z OneDrive - na przyszłość)
+ * migracja do pkar.Dialog / pkar.*Settings* z app
+ * zmiana lokalnego ContentDialog na pkar.DialogBox (ContentDialog nie ma w Uno?)
+ * Windows.Data.Xml.Dom / System.Xml w zależności od UWP/iOS-Andro-WASM
+ * Setup: pokazuje numer wersji
+ * TODO zapis settings do OneDrive - ale może warto sprawdzić czy settingsy jednak nie przechodzą
+ * TODO gdy to nie Windows, i nie ma localConfig, to odczyt Settingsow z OneDrive 
+
+STORE: 1.7.1.0, 2018.09.03
+

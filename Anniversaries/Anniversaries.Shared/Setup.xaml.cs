@@ -4,7 +4,8 @@ using System.IO;
 using System.Linq;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-
+using static VBlib.Extensions;
+using vb14 = VBlib.pkarlibmodule14;
 
 
 namespace Anniversaries
@@ -16,76 +17,168 @@ namespace Anniversaries
             this.InitializeComponent();
         }
 
-        private void bSetupOk(object sender, RoutedEventArgs e)
+        #region "ew class uwp"
+        // VBuwp.Setup. , ale nie da się zrobić  reference from Uno
+
+        private static string GetActiveTabs(StackPanel uiTabOnOff)
         {
             string sTmp = "";
+
             foreach (FrameworkElement oItem in uiTabOnOff.Children)
             {
-                if (oItem is ToggleSwitch && oItem.Name.StartsWith("uiSetTab"))
+                if (oItem is ToggleSwitch && oItem.Name.StartsWithOrdinal("uiSetTab"))
                 {
                     if ((oItem as ToggleSwitch).IsOn)
-                        sTmp = sTmp + oItem.Name.Replace("uiSetTab", "").ToUpper();
+                        sTmp += oItem.Name.Replace("uiSetTab", "").ToUpperInvariant();
                 }
             }
+            return sTmp;
+        }
 
-            if(sTmp == "")
-            {
-                p.k.DialogBoxRes("noTabSelected");
-                return;
-            }
+        private static string GetActiveLangs(StackPanel uiLangOnOff)
+        {
+            string sTmp = "";
 
-            p.k.SetSettingsString("EnabledTabs", sTmp);
-
-
-            sTmp ="";
-
-            // odczytanie wszystkich uiSetLang, żeby nie trzeba było tu zmieniać kodu
             foreach (FrameworkElement oItem in uiLangOnOff.Children)
             {
                 if (oItem is ToggleSwitch && oItem.Name.StartsWith("uiSetLang"))
                 {
                     if ((oItem as ToggleSwitch).IsOn)
-                        sTmp = sTmp + oItem.Name.Replace("uiSetLang", "").ToLower() + " ";
+#pragma warning disable CA1308 // Normalize strings to uppercase
+                        sTmp = sTmp + oItem.Name.Replace("uiSetLang", "").ToLowerInvariant() + " ";
+#pragma warning restore CA1308 // Normalize strings to uppercase
                 }
             }
+            return sTmp;
+        }
 
-            p.k.SetSettingsString("EnabledLanguages", sTmp);
+        private static void SetActiveTabs(StackPanel uiTabOnOff, string sEnabled)
+        {
+            foreach (FrameworkElement oItem in uiTabOnOff.Children)
+            {
+                if (oItem is ToggleSwitch && oItem.Name.StartsWith("uiSetTab"))
+                {
+                    if ((oItem as ToggleSwitch).IsOn)
+                        (oItem as ToggleSwitch).IsOn = sEnabled.Contains(oItem.Name.Replace("uiSetTab", "").ToUpperInvariant());
+                }
+            }
+        }
 
+        private static void SetActiveLangs(StackPanel uiLangOnOff, string sEnabled)
+        {
+            sEnabled = sEnabled.ToUpperInvariant();
+            foreach (FrameworkElement oItem in uiLangOnOff.Children)
+            {
+                if (oItem is ToggleSwitch && oItem.Name.StartsWith("uiSetLang"))
+                {
+                    (oItem as ToggleSwitch).IsOn = sEnabled.Contains(oItem.Name.Replace("uiSetLang", "").ToUpperInvariant() + " ");
+                }
+            }
+        }
 
-            p.k.SetSettingsBool("LinksActive", uiSetLinksActive);
-            p.k.SetSettingsBool("AutoLoad", uiAutoLoad);
-            p.k.SetSettingsBool("localSetup", true);   // na wszelki wypadek - żeby nie zassał z OneDrive
+        #endregion 
+
+        private void bSetupOk(object sender, RoutedEventArgs e)
+        {
+            string sTmp = GetActiveTabs(uiTabOnOff);
+
+            if(sTmp == "")
+            {
+                vb14.DialogBoxRes("noTabSelected");
+                return;
+            }
+
+            vb14.SetSettingsString("EnabledTabs", sTmp);
+
+            // odczytanie wszystkich uiSetLang, żeby nie trzeba było tu zmieniać kodu
+            sTmp = GetActiveLangs(uiLangOnOff);
+
+            vb14.SetSettingsString("EnabledLanguages", sTmp);
+
+            uiSetLinksActive.SetSettingsBool("LinksActive");
+            uiAutoLoad.SetSettingsBool("AutoLoad");
+            vb14.SetSettingsBool("localSetup", true);   // na wszelki wypadek - żeby nie zassał z OneDrive
 
             this.Frame.GoBack();    // Navigate(typeof(MainPage));
         }
 
+        private void AddOneLang(string sLang, bool bPolish, string sOffEn, string sOn, string sOffPl)
+        {
+            ToggleSwitch ts = new ToggleSwitch()
+            {
+                OnContent = sOn,
+                HorizontalAlignment = HorizontalAlignment.Center,
+
+                OffContent = (bPolish) ? sOffPl : sOffEn
+            };
+
+            if (sLang.ToUpperInvariant() == "EN")
+            {
+                ts.Name = "uiSet" + sLang;  // krótsze dla En, żeby nie było przełączania
+                ts.Header = vb14.GetLangString("uiSetLang_Hdr");
+                ts.IsEnabled = false;
+                ts.Margin = new Thickness(10, 10, 0, 0);
+                ts.IsOn = true;
+            }
+            else
+            { 
+                ts.Name = "uiSetLang" + sLang;
+                ts.Margin = new Thickness(10, 5, 0, 0);
+            }
+
+            uiLangOnOff.Children.Add(ts);
+        }
+
+        private void AddLangSwitches()
+        {
+            uiLangOnOff.Children.Clear();
+            bool bPolish = (vb14.GetLangString("_lang").ToUpperInvariant() == "PL");
+
+            AddOneLang("uiSetLangEn", bPolish, "english", "English", "angielski");
+
+            AddOneLang("De", bPolish, "german", "Deutsch", "niemiecki");
+            AddOneLang("Es", bPolish, "spanish", "Español", "hiszpański");
+            AddOneLang("Fr", bPolish, "french", "Français", "francuski");
+            AddOneLang("Pl", bPolish, "polish", "Polski", "polski");
+            AddOneLang("Ru", bPolish, "russian", "Русский", "rosyjski");
+            AddOneLang("Uk", bPolish, "ukrainian", "Українська", "ukrainski");
+            AddOneLang("El", bPolish, "greek", "Ελληνικά", "grecki");
+            AddOneLang("He", bPolish, "hebrew", "עברית", "hebrajski");
+            AddOneLang("Ja", bPolish, "japanese", "日本語", "japoński");
+            AddOneLang("Ar", bPolish, "arabic", "العربية", "arabski");
+            AddOneLang("Ka", bPolish, "georgian", "ქართული", "gruziński");
+            AddOneLang("Ko", bPolish, "korean", "한국어", "koreański");
+            AddOneLang("Zh", bPolish, "chineese", "中文", "chiński");
+
+            if (p.k.GetPlatform("uwp"))
+            {
+                var tb = new TextBlock
+                {
+                    HorizontalAlignment = HorizontalAlignment.Left,
+                    VerticalAlignment = VerticalAlignment.Top,
+                    TextWrapping = TextWrapping.Wrap,
+                    Margin = new Thickness(10, 20, 0, 0),
+                    Text = vb14.GetLangString("uiSetAddLang_Text")
+                };
+
+                uiLangOnOff.Children.Add(tb);
+            }
+
+        }
+
+
         private void SetupPage_Loaded(object sender, RoutedEventArgs e)
         {
 
-            uiVersion.Text = "v. " + p.k.GetAppVers();
+            uiVersion.ShowAppVers();
+            AddLangSwitches();
 
-            string sTmp;
-            sTmp = p.k.GetSettingsString("EnabledLanguages", "pl de fr es ru");
+            SetActiveLangs(uiLangOnOff, vb14.GetSettingsString("EnabledLanguages"));
 
-            foreach (FrameworkElement oItem in uiLangOnOff.Children)
-            {
-                if (oItem is ToggleSwitch && oItem.Name.StartsWith("uiSetLang"))
-                    (oItem as ToggleSwitch).IsOn = sTmp.IndexOf(oItem.Name.Replace("uiSetLang", "").ToLower()) > -1;
-            }
+            SetActiveTabs(uiTabOnOff, vb14.GetSettingsString("EnabledTabs"));
 
-
-            sTmp = p.k.GetSettingsString("EnabledTabs", "EBD");
-
-            foreach (FrameworkElement oItem in uiTabOnOff.Children)
-            {
-                if (oItem is ToggleSwitch && oItem.Name.StartsWith("uiSetTab"))
-                {
-                        (oItem as ToggleSwitch).IsOn = sTmp.IndexOf(oItem.Name.Replace("uiSetTab", "").ToUpper()) > -1;
-                }
-            }
-
-            p.k.GetSettingsBool(uiSetLinksActive, "LinksActive");
-            p.k.GetSettingsBool(uiAutoLoad, "AutoLoad");
+            uiSetLinksActive.GetSettingsBool("LinksActive");
+            uiAutoLoad.GetSettingsBool("AutoLoad");
 
         }
 

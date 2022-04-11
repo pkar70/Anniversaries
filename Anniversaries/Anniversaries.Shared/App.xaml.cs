@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 //using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.ApplicationModel;
@@ -10,20 +9,19 @@ using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+
+using vb14 = VBlib.pkarlibmodule14;
 
 namespace Anniversaries
 {
     /// <summary>
     /// Provides application-specific behavior to supplement the default Application class.
     /// </summary>
-    sealed partial class App : Application // Windows.UI.Xaml.
+    partial class App : Application // Windows.UI.Xaml.
     {
 
+        private Window _window;
 
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
@@ -34,95 +32,51 @@ namespace Anniversaries
 #if __ANDROID__
             // ConfigureFilters(Uno.Extensions.LogExtensionPoint.AmbientLoggerFactory);
             InitializeLogging(); // nowsze Uno
+            
 #endif 
             this.InitializeComponent();
             // this.Suspending += OnSuspending; // komentuje, bo OnSuspending jest i tak puste
         }
 
-        /// <summary>
-        /// Invoked when the application is launched normally by the end user.  Other entry points
-        /// will be used such as when the application is launched to open a specific file.
-        /// </summary>
-        /// <param name="e">Details about the launch request and process.</param>
 
-        //public static string gsUserName;
-
-        protected override void OnLaunched(LaunchActivatedEventArgs e)
+        protected Frame OnLaunchFragment(Window win)
         {
-#if DEBUG
-            if (System.Diagnostics.Debugger.IsAttached)
+            Frame mRootFrame = win.Content as Frame;
+
+            //' Do not repeat app initialization when the Window already has content,
+            //' just ensure that the window is active
+
+            if (mRootFrame is null)
             {
-                // this.DebugSettings.EnableFrameRateCounter = true;
-            }
-#endif
-            //gsUserName = "UKNOWN";
-            //try
-            //{
-            //    gsUserName = e.User.ToString(); <-- not implemented in Uno, i wymaga uap:userAccountInformation
-            //}
-            //catch
-            //{
+                //' Create a Frame to act as the navigation context and navigate to the first page
+                mRootFrame = new Frame();
 
-            //}
+                mRootFrame.NavigationFailed += OnNavigationFailed;
 
-
-//#if !NETFX_CORE
-//            // wymagane dla działania CalendarDatePicker
-//            Uno.UI.FeatureConfiguration.Popup.UseNativePopup = false;
-//#endif 
-
-            Frame rootFrame = Windows.UI.Xaml.Window.Current.Content as Frame;
-
-            // Do not repeat app initialization when the Window already has content,
-            // just ensure that the window is active
-            if (rootFrame == null)
-            {
-                // Create a Frame to act as the navigation context and navigate to the first page
-                rootFrame = new Frame();
-
-                rootFrame.NavigationFailed += OnNavigationFailed;
                 //' PKAR added wedle https://stackoverflow.com/questions/39262926/uwp-hardware-back-press-work-correctly-in-mobile-but-error-with-pc
-                rootFrame.Navigated += OnNavigatedAddBackButton;
+                mRootFrame.Navigated += OnNavigatedAddBackButton;
                 Windows.UI.Core.SystemNavigationManager.GetForCurrentView().BackRequested += OnBackButtonPressed;
 
-                // komentuje, bo nie ma w UNO a i tak nic tu nie robi
-                //if (e.PreviousExecutionState == ApplicationExecutionState.Terminated)
-                //{
-                //    //TODO: Load state from previously suspended application
-                //}
+                //' Place the frame in the current Window
+                Window.Current.Content = mRootFrame;
 
-                // Place the frame in the current Window
-                Windows.UI.Xaml.Window.Current.Content = rootFrame;
+                p.k.InitLib(null);
             }
 
-//#if NETFX_CORE
-            if (e != null && e.PrelaunchActivated == true) return;
-//#else
-            //Uno.UI.FeatureConfiguration.UIElement.UseUWPDefaultStyles = false;
-//#endif
-
-            if (rootFrame.Content == null)
-            {
-                // When the navigation stack isn't restored navigate to the first page,
-                // configuring the new page by passing required information as a navigation
-                // parameter
-
-                rootFrame.Navigate(typeof(MainPage), e.Arguments);
-            }
-            // Ensure the current window is active
-            Windows.UI.Xaml.Window.Current.Activate();
+            return mRootFrame;
         }
 
+        #region "Back button"
 
         private void OnNavigatedAddBackButton(object sender, NavigationEventArgs e)
         {
             try
             {
                 Frame oFrame = sender as Frame;
-                if (oFrame == null)
-                    return;
+                if (oFrame is null) return;
 
                 Windows.UI.Core.SystemNavigationManager oNavig = Windows.UI.Core.SystemNavigationManager.GetForCurrentView();
+
 
                 if (oFrame.CanGoBack)
                     oNavig.AppViewBackButtonVisibility = Windows.UI.Core.AppViewBackButtonVisibility.Visible;
@@ -137,16 +91,118 @@ namespace Anniversaries
             }
         }
 
-
         private void OnBackButtonPressed(object sender, Windows.UI.Core.BackRequestedEventArgs e)
         {
             try
             {
-                (Windows.UI.Xaml.Window.Current.Content as Frame).GoBack();
+                (Window.Current.Content as Frame)?.GoBack();
                 e.Handled = true;
             }
             catch { }
         }
+
+        #endregion
+
+
+        protected override void OnLaunched(LaunchActivatedEventArgs args)
+        {
+
+#if DEBUG
+            if (System.Diagnostics.Debugger.IsAttached)
+            {
+                // this.DebugSettings.EnableFrameRateCounter = true;
+            }
+#endif
+
+#if NET5_0 && WINDOWS
+            _window = new Window();
+            _window.Activate();
+#else
+            _window = Windows.UI.Xaml.Window.Current;
+#endif
+
+            Frame rootFrame = OnLaunchFragment(_window);
+
+#if !(NET5_0 && WINDOWS)
+            if (args.PrelaunchActivated == false)
+#endif
+            {
+                if (rootFrame.Content == null)
+                {
+                    // When the navigation stack isn't restored navigate to the first page,
+                    // configuring the new page by passing required information as a navigation
+                    // parameter
+                    rootFrame.Navigate(typeof(MainPage), args.Arguments);
+                }
+                // Ensure the current window is active
+                _window.Activate();
+            }
+        }
+
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "<Pending>")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")]
+        private async System.Threading.Tasks.Task<string> AppServiceLocalCommand(string sCommand)
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+        {
+            return "NO";
+        }
+
+
+        //  RemoteSystems, Timer
+        protected override async void OnBackgroundActivated(BackgroundActivatedEventArgs args)
+        {
+            moTaskDeferal = args.TaskInstance.GetDeferral(); // w pkarmodule.App
+
+
+            bool bNoComplete = false;
+            bool bObsluzone = false;
+
+            //' lista komend danej aplikacji
+            string sLocalCmds = "";
+
+            //' zwroci false gdy to nie jest RemoteSystem; gdy true, to zainicjalizowało odbieranie
+            if (!bObsluzone) bNoComplete = RemSysInit(args, sLocalCmds);
+
+            if (!bNoComplete) moTaskDeferal.Complete();
+        }
+
+        //' CommandLine, Toasts
+        protected override async void OnActivated(IActivatedEventArgs args)
+        {
+            //' to jest m.in. dla Toast i tak dalej?
+
+            //' próba czy to commandline
+            if (args.Kind == ActivationKind.CommandLineLaunch)
+            {
+
+                CommandLineActivatedEventArgs commandLine = args as CommandLineActivatedEventArgs;
+                CommandLineActivationOperation operation = commandLine?.Operation;
+                string strArgs = operation?.Arguments;
+
+
+                p.k.InitLib(strArgs.Split(' ')); // mamy command line, próbujemy zrobić z tego string() (.Net Standard 1.4)
+
+                if (!string.IsNullOrEmpty(strArgs))
+                {
+                    await ObsluzCommandLine(strArgs);
+                    Window.Current.Close();
+                }
+                return;
+            }
+
+            p.k.InitLib(null);    // nie mamy dostępu do commandline (.Net Standard 1.4)
+
+            //' jesli nie cmdline (a np. toast), albo cmdline bez parametrow, to pokazujemy okno
+            Frame rootFrame = OnLaunchFragment(Windows.UI.Xaml.Window.Current);
+
+            if (args.Kind == ActivationKind.ToastNotification)
+                rootFrame.Navigate(typeof(MainPage));
+
+
+            Window.Current.Activate();
+        }
+
 
 
         /// <summary>
@@ -159,13 +215,6 @@ namespace Anniversaries
             throw new Exception("Failed to load Page " + e.SourcePageType.FullName);
         }
 
-        /// <summary>
-        /// Invoked when application execution is being suspended.  Application state is saved
-        /// without knowing whether the application will be terminated or resumed with the contents
-        /// of memory still intact.
-        /// </summary>
-        /// <param name="sender">The source of the suspend request.</param>
-        /// <param name="e">Details about the suspend request.</param>
         // PKAR komentuje, bo i tak nie uzywam a nie ma w UNO
         //private void OnSuspending(object sender, SuspendingEventArgs e)
         //{
@@ -173,6 +222,8 @@ namespace Anniversaries
         //    //TODO: Save application state and stop any background activity
         //    deferral.Complete();
         //}
+
+        #region "logging"
 
 #if NETFX_CORE
         // previous UNO
@@ -279,6 +330,130 @@ namespace Anniversaries
 //#endif
         }
 #endif
+
+        #endregion
+        #region "RemoteSystem/Background"
+
+        private Windows.ApplicationModel.Background.BackgroundTaskDeferral moTaskDeferal = null;
+        private Windows.ApplicationModel.AppService.AppServiceConnection moAppConn;
+        private string msLocalCmdsHelp = "";
+
+        private void RemSysOnServiceClosed(Windows.ApplicationModel.AppService.AppServiceConnection appCon, Windows.ApplicationModel.AppService.AppServiceClosedEventArgs args)
+        {
+            if (appCon != null) appCon.Dispose();
+            if (moTaskDeferal != null)
+            {
+                moTaskDeferal.Complete();
+                moTaskDeferal = null;
+            }
+        }
+
+        private void RemSysOnTaskCanceled(Windows.ApplicationModel.Background.IBackgroundTaskInstance sender, Windows.ApplicationModel.Background.BackgroundTaskCancellationReason reason)
+        {
+            if (moTaskDeferal != null)
+            {
+                moTaskDeferal.Complete();
+                moTaskDeferal = null;
+            }
+        }
+
+        ///<summary>
+        ///do sprawdzania w OnBackgroundActivated
+        ///jak zwróci True, to znaczy że nie wolno zwalniać moTaskDeferal !
+        ///sLocalCmdsHelp: tekst do odesłania na HELP
+        ///</summary>
+        public bool RemSysInit(BackgroundActivatedEventArgs args, string sLocalCmdsHelp)
+        {
+            Windows.ApplicationModel.AppService.AppServiceTriggerDetails oDetails =
+             args.TaskInstance.TriggerDetails as Windows.ApplicationModel.AppService.AppServiceTriggerDetails;
+            if (oDetails is null) return false;
+
+            msLocalCmdsHelp = sLocalCmdsHelp;
+
+            args.TaskInstance.Canceled += RemSysOnTaskCanceled;
+            moAppConn = oDetails.AppServiceConnection;
+            moAppConn.RequestReceived += RemSysOnRequestReceived;
+            moAppConn.ServiceClosed += RemSysOnServiceClosed;
+            return true;
+        }
+
+        public async System.Threading.Tasks.Task<string> CmdLineOrRemSys(string sCommand)
+        {
+            string sResult = p.k.AppServiceStdCmd(sCommand, msLocalCmdsHelp);
+            if (string.IsNullOrEmpty(sResult))
+                sResult = await AppServiceLocalCommand(sCommand);
+
+            return sResult;
+        }
+
+        public async System.Threading.Tasks.Task ObsluzCommandLine(string sCommand)
+
+        {
+            Windows.Storage.StorageFolder oFold = Windows.Storage.ApplicationData.Current.TemporaryFolder;
+            if (oFold is null) return;
+
+            string sLockFilepathname = System.IO.Path.Combine(oFold.Path, "cmdline.lock");
+            string sResultFilepathname = System.IO.Path.Combine(oFold.Path, "stdout.txt");
+
+            try
+            {
+                System.IO.File.WriteAllText(sLockFilepathname, "lock");
+            }
+            catch
+            {
+                return;
+            }
+
+            string sResult = await CmdLineOrRemSys(sCommand);
+            if (string.IsNullOrEmpty(sResult))
+                sResult = "(empty - probably unrecognized command)";
+
+            System.IO.File.WriteAllText(sResultFilepathname, sResult);
+
+            System.IO.File.Delete(sLockFilepathname);
+        }
+
+        private async void RemSysOnRequestReceived(Windows.ApplicationModel.AppService.AppServiceConnection sender, Windows.ApplicationModel.AppService.AppServiceRequestReceivedEventArgs args)
+        {
+            // 'Get a deferral so we can use an awaitable API to respond to the message
+
+            string sStatus;
+            string sResult = "";
+            Windows.ApplicationModel.AppService.AppServiceDeferral messageDeferral = args.GetDeferral();
+
+            if (vb14.GetSettingsBool("remoteSystemDisabled"))
+            {
+                sStatus = "No permission";
+            }
+            else
+            {
+                Windows.Foundation.Collections.ValueSet oInputMsg = args.Request.Message;
+
+                sStatus = "ERROR while processing command";
+
+                if (oInputMsg.ContainsKey("command"))
+                {
+
+                    String sCommand = (string)oInputMsg["command"];
+                    sResult = await CmdLineOrRemSys(sCommand);
+                }
+
+                if (sResult != "") sStatus = "OK";
+            }
+
+            Windows.Foundation.Collections.ValueSet oResultMsg = new Windows.Foundation.Collections.ValueSet();
+            oResultMsg.Add("status", sStatus);
+            oResultMsg.Add("result", sResult);
+
+            await args.Request.SendResponseAsync(oResultMsg);
+
+            messageDeferral.Complete();
+            moTaskDeferal.Complete();
+        }
+
+
+        #endregion
+
 
 
     }

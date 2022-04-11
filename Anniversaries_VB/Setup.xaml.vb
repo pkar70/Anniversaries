@@ -1,9 +1,7 @@
-﻿' The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=234238
-
+﻿
 Imports Windows.Storage
-''' <summary>
-''' An empty page that can be used on its own or navigated to within a Frame.
-''' </summary>
+Imports VBlib.Extensions
+
 Public NotInheritable Class Setup
     Inherits Page
 
@@ -11,18 +9,18 @@ Public NotInheritable Class Setup
         Dim sTmp As String
 
         sTmp = ""
-        If uiSetLangPl.IsOn Then sTmp = sTmp & "pl "
-        If uiSetLangFr.IsOn Then sTmp = sTmp & "fr "
-        If uiSetLangEs.IsOn Then sTmp = sTmp & "es "
-        If uiSetLangRu.IsOn Then sTmp = sTmp & "ru "
-        If uiSetLangDe.IsOn Then sTmp = sTmp & "de "
+        If uiSetLangPl.IsOn Then sTmp &= "pl "
+        If uiSetLangFr.IsOn Then sTmp &= "fr "
+        If uiSetLangEs.IsOn Then sTmp &= "es "
+        If uiSetLangRu.IsOn Then sTmp &= "ru "
+        If uiSetLangDe.IsOn Then sTmp &= "de "
         App.SetSettingsString("EnabledLanguages", sTmp)
 
         sTmp = ""
-        If uiSetTabE.IsOn Then sTmp = sTmp & "E"
-        If uiSetTabB.IsOn Then sTmp = sTmp & "B"
-        If uiSetTabD.IsOn Then sTmp = sTmp & "D"
-        If uiSetTabH.IsOn Then sTmp = sTmp & "H"
+        If uiSetTabE.IsOn Then sTmp &= "E"
+        If uiSetTabB.IsOn Then sTmp &= "B"
+        If uiSetTabD.IsOn Then sTmp &= "D"
+        If uiSetTabH.IsOn Then sTmp &= "H"
         App.SetSettingsString("EnabledTabs", sTmp)
 
         App.SetSettingsBool("LinksActive", uiSetLinksActive.IsOn)
@@ -36,18 +34,18 @@ Public NotInheritable Class Setup
         sTmp = App.GetSettingsString("EnabledLanguages", "pl de fr es ru")
 
         uiSetLangEn.IsOn = True
-        uiSetLangPl.IsOn = (sTmp.IndexOf("pl") > -1)
-        uiSetLangFr.IsOn = (sTmp.IndexOf("fr") > -1)
-        uiSetLangEs.IsOn = (sTmp.IndexOf("es") > -1)
-        uiSetLangRu.IsOn = (sTmp.IndexOf("ru") > -1)
-        uiSetLangDe.IsOn = (sTmp.IndexOf("de") > -1)
+        uiSetLangPl.IsOn = (sTmp.IndexOfOrdinal("pl") > -1)
+        uiSetLangFr.IsOn = (sTmp.IndexOfOrdinal("fr") > -1)
+        uiSetLangEs.IsOn = (sTmp.IndexOfOrdinal("es") > -1)
+        uiSetLangRu.IsOn = (sTmp.IndexOfOrdinal("ru") > -1)
+        uiSetLangDe.IsOn = (sTmp.IndexOfOrdinal("de") > -1)
 
         sTmp = App.GetSettingsString("EnabledTabs", "EBD")
 
-        uiSetTabE.IsOn = (sTmp.IndexOf("E") > -1)
-        uiSetTabB.IsOn = (sTmp.IndexOf("B") > -1)
-        uiSetTabD.IsOn = (sTmp.IndexOf("D") > -1)
-        uiSetTabH.IsOn = (sTmp.IndexOf("H") > -1)
+        uiSetTabE.IsOn = (sTmp.IndexOfOrdinal("E") > -1)
+        uiSetTabB.IsOn = (sTmp.IndexOfOrdinal("B") > -1)
+        uiSetTabD.IsOn = (sTmp.IndexOfOrdinal("D") > -1)
+        uiSetTabH.IsOn = (sTmp.IndexOfOrdinal("H") > -1)
 
         uiSetLinksActive.IsOn = App.GetSettingsBool("LinksActive")
 

@@ -44,7 +44,7 @@ Namespace My.Resources
         Friend Shared ReadOnly Property ResourceManager() As Global.System.Resources.ResourceManager
             Get
                 If Object.ReferenceEquals(resourceMan, Nothing) Then
-                    Dim temp As Global.System.Resources.ResourceManager = New Global.System.Resources.ResourceManager("VBlibekStd.Resource_PL", GetType(Resource_PL).GetTypeInfo.Assembly)
+                    Dim temp As Global.System.Resources.ResourceManager = New Global.System.Resources.ResourceManager("VBlib.Resource_PL", GetType(Resource_PL).GetTypeInfo.Assembly)
                     resourceMan = temp
                 End If
                 Return resourceMan
@@ -75,11 +75,47 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Nie mam co wyświetlić?.
+        '''</summary>
+        Friend Shared ReadOnly Property errNoData() As String
+            Get
+                Return ResourceManager.GetString("errNoData", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Tak.
         '''</summary>
         Friend Shared ReadOnly Property msgYes() As String
             Get
                 Return ResourceManager.GetString("msgYes", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Włącz któryś typ danych (zakładkę).
+        '''</summary>
+        Friend Shared ReadOnly Property noTabSelected() As String
+            Get
+                Return ResourceManager.GetString("noTabSelected", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Prośby o dodanie kolejnych języków proszę kierować za pośrednictwem FeedBack Hub.
+        '''</summary>
+        Friend Shared ReadOnly Property uiSetAddLang_Text() As String
+            Get
+                Return ResourceManager.GetString("uiSetAddLang_Text", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Aktywne języki.
+        '''</summary>
+        Friend Shared ReadOnly Property uiSetLang_Hdr() As String
+            Get
+                Return ResourceManager.GetString("uiSetLang_Hdr", resourceCulture)
             End Get
         End Property
     End Class

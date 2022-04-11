@@ -2,12 +2,14 @@
 ' wzięte z Uno.Shared:MainPage.xaml.cs 
 ' 2022.01.26
 
+#Disable Warning CA1707 ' Identifiers should not contain underscores
+#Disable Warning CA2007 'Consider calling ConfigureAwait On the awaited task
+
 Public Module MainPage
 
-    Public mEvents As HtmlAgilityPack.HtmlDocument = New HtmlAgilityPack.HtmlDocument()
-    Public mBirths As HtmlAgilityPack.HtmlDocument = New HtmlAgilityPack.HtmlDocument()
-    Public mDeaths As HtmlAgilityPack.HtmlDocument = New HtmlAgilityPack.HtmlDocument()
-    'Private mDate As DateTimeOffset
+    Private mEvents As New HtmlAgilityPack.HtmlDocument()
+    Private mBirths As New HtmlAgilityPack.HtmlDocument()
+    Private mDeaths As New HtmlAgilityPack.HtmlDocument()
 
     ' nazwa, odpowiednio Case dla Wikipedii - gdy poza zakresem, zwroci styczen
     Public Function MonthNo2EnName(ByVal iMonth As Integer) As String ' static, bo wywoływane z  InfoAbout
@@ -42,6 +44,32 @@ Public Module MainPage
         End Select
     End Function
 
+    Public Sub bRead_Click_Reset()
+        ' fragment bRead_Click, żeby nie trzeba było Agility dodawać do samej App - wystarczy w VBlib
+        mEvents = New HtmlAgilityPack.HtmlDocument()
+        mBirths = New HtmlAgilityPack.HtmlDocument()
+        mDeaths = New HtmlAgilityPack.HtmlDocument()
+    End Sub
+
+    Public Function GetContentForWebview(sTab As String) As String
+        Dim oDoc As HtmlAgilityPack.HtmlNode
+        Select Case sTab
+            Case "E"
+                oDoc = mEvents.DocumentNode
+            Case "B"
+                oDoc = mBirths.DocumentNode
+            Case "D"
+                oDoc = mDeaths.DocumentNode
+            Case Else
+                DumpMessage("unrecognized sTab (" & sTab & ") in GetContentForWebview, using Events")
+                oDoc = mEvents.DocumentNode
+        End Select
+
+        If oDoc.FirstChild Is Nothing Then Return Nothing
+
+        Return oDoc.OuterHtml
+
+    End Function
 
     ''' <summary>
     ''' Wycięcie z htmlDoc fragmentu od <h2> zawierającego _sFrom_ (np. "id=wydarzenia") do początku następnego h2
@@ -319,7 +347,7 @@ Public Module MainPage
 
             If iRok1 < iRok2 Then
                 sResult = sResult & vbLf & PoprawRok(oNode1.OuterHtml)
-                i1 = i1 + 1
+                i1 += 1
 
                 If i1 < oNodes1.Count Then
                     oNode1 = oNodes1.ElementAt(i1)
@@ -327,7 +355,7 @@ Public Module MainPage
                 End If
             Else
                 sResult = sResult & vbLf & PoprawRok(oNode2.OuterHtml)
-                i2 = i2 + 1
+                i2 += 1
 
                 If i2 < oNodes2.Count Then
                     oNode2 = oNodes2.ElementAt(i2)
@@ -339,13 +367,13 @@ Public Module MainPage
         While i1 < oNodes1.Count
             oNode1 = oNodes1.ElementAt(i1)
             sResult = sResult & vbLf & PoprawRok(oNode1.OuterHtml)
-            i1 = i1 + 1
+            i1 += 1
         End While
 
         While i2 < oNodes2.Count
             oNode2 = oNodes2.ElementAt(i2)
             sResult = sResult & vbLf & PoprawRok(oNode2.OuterHtml)
-            i2 = i2 + 1
+            i2 += 1
         End While
 
         Dim oRetDoc = New HtmlAgilityPack.HtmlDocument()
@@ -366,123 +394,125 @@ Public Module MainPage
     ''' <summary>
     ''' wczytaj dane z sUrl, dodawaj do mEvents, mBirths, mDeaths i mHolid
     ''' </summary>
-    Public Async Function ReadOneLang(sUrl As String, sEnabledTabs As String) As Task(Of String)
-        DumpCurrMethod(sUrl)
+    Public Async Function ReadOneLang(oUri As Uri) As Task(Of String)
+        If oUri Is Nothing Then Return ""   ' dla CA1062
+
+        DumpCurrMethod(oUri.ToString)
         Dim sTxt As String
-        sTxt = Await GetHtmlPage(sUrl).ConfigureAwait(True)
+        sTxt = Await HttpPageAsync(oUri)
         If sTxt = "" Then Return ""
 
         Dim iInd As Integer
-        sUrl = sUrl.Replace("https://", "")
-        iInd = sUrl.IndexOf(".", StringComparison.Ordinal)
-        sUrl = sUrl.Substring(0, iInd)
-        sTxt = DodajPelnyLink(sTxt, sUrl)
-        If sTxt.StartsWith("<!DOCTYPE html>") Then sTxt = sTxt.Replace("<!DOCTYPE html>", "")
+        Dim sLang = oUri.Host
+        iInd = sLang.IndexOf(".", StringComparison.Ordinal)
+        sLang = sLang.Substring(0, iInd)
+        sTxt = DodajPelnyLink(sTxt, sLang)
+        If sTxt.StartsWith("<!DOCTYPE html>", StringComparison.Ordinal) Then sTxt = sTxt.Replace("<!DOCTYPE html>", "")
         Dim htmlDoc = New HtmlAgilityPack.HtmlDocument()
         htmlDoc.LoadHtml(sTxt)
         Dim sTabs As String
-        sTabs = sEnabledTabs ' p.k.GetSettingsString("EnabledTabs", "EBD")
+        sTabs = GetSettingsString("EnabledTabs")
 
-        Select Case sUrl
+        Select Case sLang
             Case "en"
-                If sTabs.Contains("E") Then mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "Events", sUrl))
-                If sTabs.Contains("B") Then mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "Births", sUrl))
-                If sTabs.Contains("D") Then mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "Deaths", sUrl))
+                If sTabs.Contains("E") Then mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "Events", sLang))
+                If sTabs.Contains("B") Then mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "Births", sLang))
+                If sTabs.Contains("D") Then mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "Deaths", sLang))
                     'if (sTabs.IndexOf("H", StringComparison.Ordinal) > -1)
                     '    mHolid = mHolid + WyciagnijDane(sTxt, "observances\">Holidays", sUrl);
 
             Case "de"
-                If sTabs.Contains("E") Then mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "Ereignisse", sUrl))
-                If sTabs.Contains("B") Then mBirths = WyciagnijDane(htmlDoc, "Geboren", sUrl)
-                If sTabs.Contains("D") Then mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "Gestorben", sUrl))
+                If sTabs.Contains("E") Then mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "Ereignisse", sLang))
+                If sTabs.Contains("B") Then mBirths = WyciagnijDane(htmlDoc, "Geboren", sLang)
+                If sTabs.Contains("D") Then mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "Gestorben", sLang))
                     'if (sTabs.IndexOf("H", StringComparison.Ordinal) > -1)
                     '    mHolid = mHolid + WyciagnijDane(sTxt, "id=\"Feier");
 
             Case "pl"
                 If sTabs.Contains("E") Then
-                    mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "Wydarzenia w Pols", sUrl))
-                    mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "Wydarzenia na świ", sUrl))
+                    mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "Wydarzenia w Pols", sLang))
+                    mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "Wydarzenia na świ", sLang))
                 End If
 
-                If sTabs.Contains("B") Then mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "Urodzili", sUrl))
-                If sTabs.Contains("D") Then mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "Zmarli", sUrl))
+                If sTabs.Contains("B") Then mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "Urodzili", sLang))
+                If sTabs.Contains("D") Then mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "Zmarli", sLang))
                     'if (sTabs.IndexOf("H", StringComparison.Ordinal) > -1)
                     '    mHolid = mHolid + WyciagnijDane(sTxt, "id=\"Święta");
 
             Case "fr"
                 If sTabs.Contains("E") Then
-                    mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "Événements", sUrl))
-                    mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "Arts, culture", sUrl))
-                    mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "Sciences_et", sUrl))
-                    mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "Économie", sUrl))
+                    mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "Événements", sLang))
+                    mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "Arts, culture", sLang))
+                    mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "Sciences_et", sLang))
+                    mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "Économie", sLang))
                 End If
 
-                If sTabs.Contains("B") Then mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "Naissances", sUrl))
-                If sTabs.Contains("D") Then mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "Décès", sUrl))
+                If sTabs.Contains("B") Then mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "Naissances", sLang))
+                If sTabs.Contains("D") Then mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "Décès", sLang))
                     'if (sTabs.IndexOf("H", StringComparison.Ordinal) > -1)
                     '    mHolid = mHolid + WyciagnijDane(sTxt, "ns\">Célébrations");
 
             Case "es"
-                If sTabs.Contains("E") Then mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "Acontecimientos", sUrl))
-                If sTabs.Contains("B") Then mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "Nacimientos", sUrl))
-                If sTabs.Contains("D") Then mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "Fallecimientos", sUrl))
+                If sTabs.Contains("E") Then mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "Acontecimientos", sLang))
+                If sTabs.Contains("B") Then mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "Nacimientos", sLang))
+                If sTabs.Contains("D") Then mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "Fallecimientos", sLang))
                     'if (sTabs.IndexOf("H", StringComparison.Ordinal) > -1)
                     '    mHolid = mHolid + WyciagnijDane(sTxt, "s\">Celebraciones");
 
             Case "ru"
-                If sTabs.Contains("E") Then mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "События", sUrl))
-                If sTabs.Contains("B") Then mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "Родились", sUrl))
-                If sTabs.Contains("D") Then mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "Скончались", sUrl))
+                If sTabs.Contains("E") Then mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "События", sLang))
+                If sTabs.Contains("B") Then mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "Родились", sLang))
+                If sTabs.Contains("D") Then mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "Скончались", sLang))
                     'if (sTabs.IndexOf("H", StringComparison.Ordinal) > -1)
                     '    mHolid = mHolid + WyciagnijDane(sTxt, "id=\"Праздники");
 
             Case "uk"
-                If sTabs.Contains("E") Then mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "Події", sUrl))
-                If sTabs.Contains("B") Then mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "Народились", sUrl))
-                If sTabs.Contains("D") Then mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "Померли", sUrl))
+                If sTabs.Contains("E") Then mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "Події", sLang))
+                If sTabs.Contains("B") Then mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "Народились", sLang))
+                If sTabs.Contains("D") Then mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "Померли", sLang))
 
             Case "el"
-                If sTabs.Contains("E") Then mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "Γεγονότα", sUrl))
-                If sTabs.Contains("B") Then mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "Γεννήσεις", sUrl))
-                If sTabs.Contains("D") Then mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "Θάνατοι", sUrl))
+                If sTabs.Contains("E") Then mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "Γεγονότα", sLang))
+                If sTabs.Contains("B") Then mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "Γεννήσεις", sLang))
+                If sTabs.Contains("D") Then mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "Θάνατοι", sLang))
 
             Case "he"
-                If sTabs.Contains("E") Then mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "אירועים", sUrl))
-                If sTabs.Contains("B") Then mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "נולדו", sUrl))
-                If sTabs.Contains("D") Then mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "נפטרו", sUrl))
+                If sTabs.Contains("E") Then mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "אירועים", sLang))
+                If sTabs.Contains("B") Then mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "נולדו", sLang))
+                If sTabs.Contains("D") Then mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "נפטרו", sLang))
 
             Case "ja"
-                If sTabs.Contains("E") Then mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "できごと", sUrl))
-                If sTabs.Contains("B") Then mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "誕生日", sUrl))
-                If sTabs.Contains("D") Then mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "忌日", sUrl))
+                If sTabs.Contains("E") Then mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "できごと", sLang))
+                If sTabs.Contains("B") Then mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "誕生日", sLang))
+                If sTabs.Contains("D") Then mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "忌日", sLang))
 
             Case "ar"
-                If sTabs.Contains("E") Then mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "أحداث", sUrl))
-                If sTabs.Contains("B") Then mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "مواليد", sUrl))
-                If sTabs.Contains("D") Then mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "وفيات", sUrl))
+                If sTabs.Contains("E") Then mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "أحداث", sLang))
+                If sTabs.Contains("B") Then mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "مواليد", sLang))
+                If sTabs.Contains("D") Then mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "وفيات", sLang))
 
             Case "ka"
-                If sTabs.Contains("E") Then mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "მოვლენები", sUrl))
-                If sTabs.Contains("B") Then mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "დაბადებულნი", sUrl))
-                If sTabs.Contains("D") Then mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "გარდაცვლილნი", sUrl))
+                If sTabs.Contains("E") Then mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "მოვლენები", sLang))
+                If sTabs.Contains("B") Then mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "დაბადებულნი", sLang))
+                If sTabs.Contains("D") Then mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "გარდაცვლილნი", sLang))
 
             Case "ko"
 
                 If sTabs.Contains("E") Then
-                    mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "사건", sUrl))
-                    mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "문화", sUrl))
+                    mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "사건", sLang))
+                    mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "문화", sLang))
                 End If
 
-                If sTabs.Contains("B") Then mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "탄생", sUrl))
-                If sTabs.Contains("D") Then mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "사망", sUrl))
+                If sTabs.Contains("B") Then mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "탄생", sLang))
+                If sTabs.Contains("D") Then mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "사망", sLang))
 
             Case "zh"
-                If sTabs.Contains("E") Then mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "大事记", sUrl))
-                If sTabs.Contains("B") Then mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "出生", sUrl))
-                If sTabs.Contains("D") Then mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "逝世", sUrl))
+                If sTabs.Contains("E") Then mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "大事记", sLang))
+                If sTabs.Contains("B") Then mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "出生", sLang))
+                If sTabs.Contains("D") Then mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "逝世", sLang))
 
             Case Else
-                Dim oUnsupported = HtmlAgilityPack.HtmlNode.CreateNode("<h2>Unsupported lang: " & sUrl & "</h2>")
+                Dim oUnsupported = HtmlAgilityPack.HtmlNode.CreateNode("<h2>Unsupported lang: " & sLang & "</h2>")
                 mEvents.DocumentNode.AppendChild(oUnsupported)
                 mBirths.DocumentNode.AppendChild(oUnsupported)
                 mDeaths.DocumentNode.AppendChild(oUnsupported)
@@ -492,8 +522,11 @@ Public Module MainPage
         Return sTxt
     End Function
 
-    Public Function ExtractLangLinks(sForLangs As String, sPage As String) As List(Of String)
-        Dim lList As List(Of String) = New List(Of String)()     ' SDK 1803 - problem z typem?
+    Public Function ExtractLangLinks(sForLangs As String, sPage As String) As IReadOnlyList(Of String)
+        Dim lList As New List(Of String)()     ' SDK 1803 - problem z typem?
+        If sForLangs Is Nothing Then Return lList
+        If String.IsNullOrEmpty(sPage) Then Return lList
+
         Dim iInd As Integer
         Dim sTmp As String
         Dim aArr As String()   ' było Array, SDK 1803 - nie zna typu dla sLang, zmieniam na String()
@@ -514,20 +547,7 @@ Public Module MainPage
         Return lList
     End Function
 
-    Private Async Function GetHtmlPage(ByVal sUrl As String) As Task(Of String) ' UNO NIE MA windows.web - migracja do System.Net.Http
-        DumpCurrMethod(sUrl)
-
-        Using oHttp As Net.Http.HttpClient = New Net.Http.HttpClient()
-            Dim oUri As Uri = New Uri(sUrl)
-
-            Using oResp = Await oHttp.GetAsync(oUri).ConfigureAwait(True)
-
-                If Not oResp.IsSuccessStatusCode Then Return ""
-
-                Return Await oResp.Content.ReadAsStringAsync().ConfigureAwait(True)
-            End Using
-        End Using
-    End Function
-
 End Module
 
+#Enable Warning CA2007 'Consider calling ConfigureAwait On the awaited task
+#Enable Warning CA1707 ' Identifiers should not contain underscores
