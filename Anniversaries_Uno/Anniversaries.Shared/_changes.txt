@@ -4,6 +4,11 @@
 * AppBar: zepsute ikonki [workaround], niepotrzebny button rozwijania ze złą ikonką (a i tak nie działa)
 * CommandBar: pokazuje tylko SecondaryCommands (brak obsługi innych niż BitmapIcon)
 
+2022.04.25
+* _changes, _tudus
+* trochę strings z dodawania na ${}
+* usunąłem z setup.xaml listę ToggleSwitch językowych (w kodzie i tak są Clear, i wstawiane w pętli)
+
 2022.04.15
 * MainPage, ProgressBar z XAML na ProgRing
 
@@ -19,13 +24,15 @@
 2022.01.26
 * migracja z powrotem części kodu do VB (VB_Lib, .Net standard 1.4, widoczne w VB UWP, w Uno UWP i Droid, oraz w MAUI
 
+STORE 2112 (Android)
+
 2021.12.29
 * aktualizacja dla Android 12, oraz aktualizacja Logging (see Uno.txt)
 * błąd UNO: AppBarToggleButton.IsChecked nie działa
 * błąd regression (Droid): nie włączał secondary commands - ale to był mój błąd, wygaszałem uiAndroidSec.
 * InfoAbout - dodałem nazwę app oraz AppVersion, opis z pionowego środka na górę.
 
-STORE 2112
+STORE 2112 (Win)
 
 2021.12.28
 * zmiana kodu SetLang i SetTab - teraz zmiana potrzebna tylko w Setup.Xaml oraz w MainPage.ReadLang (nie trzeba zmnian w Setup.Xaml.vb)

@@ -134,7 +134,7 @@ namespace Anniversaries
             uiLangOnOff.Children.Clear();
             bool bPolish = (vb14.GetLangString("_lang").ToUpperInvariant() == "PL");
 
-            AddOneLang("uiSetLangEn", bPolish, "english", "English", "angielski");
+            AddOneLang("En", bPolish, "english", "English", "angielski");
 
             AddOneLang("De", bPolish, "german", "Deutsch", "niemiecki");
             AddOneLang("Es", bPolish, "spanish", "Español", "hiszpański");
