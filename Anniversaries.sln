@@ -5,13 +5,13 @@ VisualStudioVersion = 17.0.32112.339
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "Anniversaries", "Anniversaries_VB\Anniversaries.vbproj", "{D6A31AD8-8B81-4C0F-9790-B70F8F9531E7}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Anniversaries.Shared", "Anniversaries\Anniversaries.Shared\Anniversaries.Shared.shproj", "{6279C845-92F8-4333-AB99-3D213163593C}"
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Anniversaries.Shared", "Anniversaries_Uno\Anniversaries.Shared\Anniversaries.Shared.shproj", "{6279C845-92F8-4333-AB99-3D213163593C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Anniversaries.Droid", "Anniversaries\Anniversaries.Droid\Anniversaries.Droid.csproj", "{8E86C147-08DC-4997-B341-828A6B28EEF2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Anniversaries.Droid", "Anniversaries_Uno\Anniversaries.Droid\Anniversaries.Droid.csproj", "{8E86C147-08DC-4997-B341-828A6B28EEF2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Anniversaries.iOS", "Anniversaries\Anniversaries.iOS\Anniversaries.iOS.csproj", "{B7DB881E-F703-4F0C-B94C-EF8A12EAF81A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Anniversaries.iOS", "Anniversaries_Uno\Anniversaries.iOS\Anniversaries.iOS.csproj", "{B7DB881E-F703-4F0C-B94C-EF8A12EAF81A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Anniversaries.UWP", "Anniversaries\Anniversaries.UWP\Anniversaries.UWP.csproj", "{690009A0-6901-47C8-A326-54C1FB64694C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Anniversaries.UWP", "Anniversaries_Uno\Anniversaries.UWP\Anniversaries.UWP.csproj", "{690009A0-6901-47C8-A326-54C1FB64694C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{EBF1DEFB-F788-4804-BDC2-A39CD0C2CDA9}"
 	ProjectSection(SolutionItems) = preProject
@@ -25,10 +25,10 @@ Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "VBlib", "VBlibekStd\VBlib.v
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		Anniversaries\Anniversaries.Shared\Anniversaries.Shared.projitems*{6279c845-92f8-4333-ab99-3d213163593c}*SharedItemsImports = 13
-		Anniversaries\Anniversaries.Shared\Anniversaries.Shared.projitems*{690009a0-6901-47c8-a326-54c1fb64694c}*SharedItemsImports = 4
-		Anniversaries\Anniversaries.Shared\Anniversaries.Shared.projitems*{8e86c147-08dc-4997-b341-828a6b28eef2}*SharedItemsImports = 4
-		Anniversaries\Anniversaries.Shared\Anniversaries.Shared.projitems*{b7db881e-f703-4f0c-b94c-ef8a12eaf81a}*SharedItemsImports = 4
+		Anniversaries_Uno\Anniversaries.Shared\Anniversaries.Shared.projitems*{6279c845-92f8-4333-ab99-3d213163593c}*SharedItemsImports = 13
+		Anniversaries_Uno\Anniversaries.Shared\Anniversaries.Shared.projitems*{690009a0-6901-47c8-a326-54c1fb64694c}*SharedItemsImports = 4
+		Anniversaries_Uno\Anniversaries.Shared\Anniversaries.Shared.projitems*{8e86c147-08dc-4997-b341-828a6b28eef2}*SharedItemsImports = 4
+		Anniversaries_Uno\Anniversaries.Shared\Anniversaries.Shared.projitems*{b7db881e-f703-4f0c-b94c-ef8a12eaf81a}*SharedItemsImports = 4
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Ad-Hoc|Any CPU = Ad-Hoc|Any CPU
@@ -70,12 +70,12 @@ Global
 		{D6A31AD8-8B81-4C0F-9790-B70F8F9531E7}.Ad-Hoc|ARM64.ActiveCfg = Debug|x64
 		{D6A31AD8-8B81-4C0F-9790-B70F8F9531E7}.Ad-Hoc|ARM64.Build.0 = Debug|x64
 		{D6A31AD8-8B81-4C0F-9790-B70F8F9531E7}.Ad-Hoc|ARM64.Deploy.0 = Debug|x64
-		{D6A31AD8-8B81-4C0F-9790-B70F8F9531E7}.Ad-Hoc|iPhone.ActiveCfg = Release|x86
-		{D6A31AD8-8B81-4C0F-9790-B70F8F9531E7}.Ad-Hoc|iPhone.Build.0 = Release|x86
-		{D6A31AD8-8B81-4C0F-9790-B70F8F9531E7}.Ad-Hoc|iPhone.Deploy.0 = Release|x86
-		{D6A31AD8-8B81-4C0F-9790-B70F8F9531E7}.Ad-Hoc|iPhoneSimulator.ActiveCfg = Release|x86
-		{D6A31AD8-8B81-4C0F-9790-B70F8F9531E7}.Ad-Hoc|iPhoneSimulator.Build.0 = Release|x86
-		{D6A31AD8-8B81-4C0F-9790-B70F8F9531E7}.Ad-Hoc|iPhoneSimulator.Deploy.0 = Release|x86
+		{D6A31AD8-8B81-4C0F-9790-B70F8F9531E7}.Ad-Hoc|iPhone.ActiveCfg = Debug|x64
+		{D6A31AD8-8B81-4C0F-9790-B70F8F9531E7}.Ad-Hoc|iPhone.Build.0 = Debug|x64
+		{D6A31AD8-8B81-4C0F-9790-B70F8F9531E7}.Ad-Hoc|iPhone.Deploy.0 = Debug|x64
+		{D6A31AD8-8B81-4C0F-9790-B70F8F9531E7}.Ad-Hoc|iPhoneSimulator.ActiveCfg = Debug|x64
+		{D6A31AD8-8B81-4C0F-9790-B70F8F9531E7}.Ad-Hoc|iPhoneSimulator.Build.0 = Debug|x64
+		{D6A31AD8-8B81-4C0F-9790-B70F8F9531E7}.Ad-Hoc|iPhoneSimulator.Deploy.0 = Debug|x64
 		{D6A31AD8-8B81-4C0F-9790-B70F8F9531E7}.Ad-Hoc|x64.ActiveCfg = Release|x64
 		{D6A31AD8-8B81-4C0F-9790-B70F8F9531E7}.Ad-Hoc|x64.Build.0 = Release|x64
 		{D6A31AD8-8B81-4C0F-9790-B70F8F9531E7}.Ad-Hoc|x64.Deploy.0 = Release|x64
@@ -91,12 +91,12 @@ Global
 		{D6A31AD8-8B81-4C0F-9790-B70F8F9531E7}.AppStore|ARM64.ActiveCfg = Debug|x64
 		{D6A31AD8-8B81-4C0F-9790-B70F8F9531E7}.AppStore|ARM64.Build.0 = Debug|x64
 		{D6A31AD8-8B81-4C0F-9790-B70F8F9531E7}.AppStore|ARM64.Deploy.0 = Debug|x64
-		{D6A31AD8-8B81-4C0F-9790-B70F8F9531E7}.AppStore|iPhone.ActiveCfg = Release|x86
-		{D6A31AD8-8B81-4C0F-9790-B70F8F9531E7}.AppStore|iPhone.Build.0 = Release|x86
-		{D6A31AD8-8B81-4C0F-9790-B70F8F9531E7}.AppStore|iPhone.Deploy.0 = Release|x86
-		{D6A31AD8-8B81-4C0F-9790-B70F8F9531E7}.AppStore|iPhoneSimulator.ActiveCfg = Release|x86
-		{D6A31AD8-8B81-4C0F-9790-B70F8F9531E7}.AppStore|iPhoneSimulator.Build.0 = Release|x86
-		{D6A31AD8-8B81-4C0F-9790-B70F8F9531E7}.AppStore|iPhoneSimulator.Deploy.0 = Release|x86
+		{D6A31AD8-8B81-4C0F-9790-B70F8F9531E7}.AppStore|iPhone.ActiveCfg = Debug|x64
+		{D6A31AD8-8B81-4C0F-9790-B70F8F9531E7}.AppStore|iPhone.Build.0 = Debug|x64
+		{D6A31AD8-8B81-4C0F-9790-B70F8F9531E7}.AppStore|iPhone.Deploy.0 = Debug|x64
+		{D6A31AD8-8B81-4C0F-9790-B70F8F9531E7}.AppStore|iPhoneSimulator.ActiveCfg = Debug|x64
+		{D6A31AD8-8B81-4C0F-9790-B70F8F9531E7}.AppStore|iPhoneSimulator.Build.0 = Debug|x64
+		{D6A31AD8-8B81-4C0F-9790-B70F8F9531E7}.AppStore|iPhoneSimulator.Deploy.0 = Debug|x64
 		{D6A31AD8-8B81-4C0F-9790-B70F8F9531E7}.AppStore|x64.ActiveCfg = Release|x64
 		{D6A31AD8-8B81-4C0F-9790-B70F8F9531E7}.AppStore|x64.Build.0 = Release|x64
 		{D6A31AD8-8B81-4C0F-9790-B70F8F9531E7}.AppStore|x64.Deploy.0 = Release|x64

@@ -26,18 +26,19 @@ namespace Anniversaries
         public MainPage()
         {
             this.InitializeComponent();
+            this.ProgRingInit(false,true);
         }
 
         private static DateTimeOffset mDate;
 
         private void bSetup_Click(object sender, RoutedEventArgs e)
         {
-            this.Frame.Navigate(typeof(Setup));
+            this.Navigate(typeof(Setup));
         }
 
         private void bInfo_Click(object sender, RoutedEventArgs e)
         {
-            this.Frame.Navigate(typeof(InfoAbout));
+            this.Navigate(typeof(InfoAbout));
         }
 
 
@@ -57,24 +58,27 @@ namespace Anniversaries
             if(sTxt =="")
             {
                 // nie udalo sie wczytac strony - i to tej glownej, ktora nam daje linki do pozostałych
-                vb14.DialogBox("ERROR getting page\n" + sUrl);
+                vb14.DialogBox($"ERROR getting page\n{sUrl}");
                 return; // skoro i tak nie przejdziemy do pozostałych, to możemy zrezygnować
             }
             sUrl = vb14.GetSettingsString("EnabledLanguages");
             IReadOnlyList<string> lList = VBlib.MainPage.ExtractLangLinks(sUrl, sTxt);
 
-            uiProgBar.Maximum = 1 + lList.Count;
-            uiProgBar.Visibility = Visibility.Visible;
-            uiProgBar.Value = 1;
+            this.ProgRingShow(true, false, 0, 1 + lList.Count);
+            this.ProgRingInc();
+            //uiProgBar.Maximum = 1 + lList.Count;
+            //uiProgBar.Visibility = Visibility.Visible;
+            //uiProgBar.Value = 1;
 
             foreach (string sUri in lList)
             {
                 tbDzien.Text = "Reading " + sUri.Substring(8, 2).ToUpperInvariant() + "...";
                 // p.k.GetSettingsString("EnabledTabs", "EBD")'
                 await VBlib.MainPage.ReadOneLang(new Uri(sUri));
-                uiProgBar.Value++;
+                //uiProgBar.Value++;
+                this.ProgRingInc();
             }
-            uiProgBar.Visibility = Visibility.Collapsed;
+            this.ProgRingShow(false);
 
             bool bZaden = true;
             if (bEvent.IsChecked.HasValue && bEvent.IsChecked.Value)
@@ -116,7 +120,7 @@ namespace Anniversaries
             wbViewer.Height = naView.ActualHeight - 10;
             wbViewer.Width = naView.ActualWidth - 10;
             // if (sHead == "") sHead = MetaViewport(); - jest jeszcze gorzej :)
-            sHtml = "<html><head>" + sHead + "</head><body>" + sHtml + "</body></html>";
+            sHtml = $"<html><head>{sHead}</head><body>{sHtml}</body></html>";
             wbViewer.NavigateToString(sHtml);
         }
 

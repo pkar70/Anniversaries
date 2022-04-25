@@ -19,7 +19,7 @@
         <TextBlock x:Uid="mpHeader" HorizontalAlignment="Center" Margin="0,10,0,15" Text="Anniversaries - today in history" VerticalAlignment="Center" FontSize="24"/>
         <Grid Name="naView" Grid.Row="1" >
             <WebView Name="wbViewer" Margin="5,10,5,10" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" NavigationStarting="wbViewer_NavigationStarting" />
-            <ProgressBar HorizontalAlignment="Stretch" Visibility="Collapsed" VerticalAlignment="Bottom" Name="uiProgBar"/>
+            <!-- <ProgressBar HorizontalAlignment="Stretch" Visibility="Collapsed" VerticalAlignment="Bottom" Name="uiProgBar"/> -->
         </Grid>
 
         <not_win:Grid Grid.Row="2" Name="uiAndroBottom" Margin="0,10,0,0">

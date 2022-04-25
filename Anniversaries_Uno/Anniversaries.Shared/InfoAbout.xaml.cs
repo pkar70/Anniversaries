@@ -14,7 +14,7 @@ namespace Anniversaries
 
         private void bInfoOk(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
-            this.Frame.GoBack(); // .Navigate(typeof(MainPage));
+            this.GoBack(); // .Navigate(typeof(MainPage));
         }
 
         private void Page_Load(object sender, Windows.UI.Xaml.RoutedEventArgs e)

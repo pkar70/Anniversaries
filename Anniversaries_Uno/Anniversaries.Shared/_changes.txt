@@ -4,6 +4,8 @@
 * AppBar: zepsute ikonki [workaround], niepotrzebny button rozwijania ze złą ikonką (a i tak nie działa)
 * CommandBar: pokazuje tylko SecondaryCommands (brak obsługi innych niż BitmapIcon)
 
+2022.04.15
+* MainPage, ProgressBar z XAML na ProgRing
 
 2022.04.10
 * wydzielenie historii do oddzielnego pliku (tego właśnie), z różnych źródeł

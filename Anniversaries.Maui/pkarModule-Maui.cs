@@ -16,6 +16,51 @@ using System.Linq;
 // do Strings:
 // "errAnyError", resDlgYes, resDlgNo
 
+
+#region "UWP-MAUI conversions"
+//using RoutedEventArgs = System.EventArgs;
+//using WebViewNavigationStartingEventArgs = Microsoft.Maui.Controls.WebNavigatingEventArgs;
+//using Page = Microsoft.Maui.Controls.ContentPage;
+//using StackPanel = Microsoft.Maui.Controls.StackLayout;
+
+// this.Frame.GoBack();  => this.GoBack(); // Frame jest niestety used do innych celów, nie można go aliasować
+
+// XAML
+// TextBlock => Label
+// StackPanel => StackLayout
+// AppBarButton => <Button Text="Button text" ImageSource="button.png" ContentLayout="Top, 5" />
+// ToggleButton => RadioButton (appearance of each RadioButton can be redefined with a ControlTemplate) https://docs.microsoft.com/en-us/dotnet/maui/user-interface/controls/radiobutton
+// CommandBar => StackLayout
+// AppBarSeparator => <Label Text=" | " />
+//<Button Icon= > => <Button.ImageSource><FontImageSource Glyph = "&#xE1E2;" FontFamily = "Segoe MDL2 Assets" /></Button.ImageSource>
+//          albo ImageButton
+// OutlineStar => &#xE734
+// Accept => &#xE8FB
+// Click => Clicked
+// AppBarButton Label => ...
+// TextWrapping => LineBreakMode.NoWrap, WordWrap, CharacterWrap (w MAUI ma więcej możliwości)
+// HorizontalAlignment => HorizontalTextAlignment
+// HyperlinkButton =>  <Label x:Name="uiWikiLink" Text="WIDOCZNE" Margin="10,0,10,10" TextDecorations="Underline" TextColor="Blue" /> oraz DataContext=Uri
+// #if NETFX_CORE => WINDOWS10_0_17763_0_OR_GREATER
+
+// powinno być proste dodać:
+// PULLREQ TextWrapping => LineBreakMode.NoWrap, WordWrap, CharacterWrap (w MAUI ma więcej możliwości)
+// HorizontalAlignment => HorizontalTextAlignment
+// Button Icon -> <Button.ImageSource><FontImageSource
+// VerticalAlignment="Center" 
+// ToggleSwitch -> Switch, OffContent, OnContnet, IsOn
+
+static partial class ExtensionsUWPMAUI
+{
+    public static void GoBack(this Microsoft.Maui.Controls.ContentPage oPage)
+    {
+        oPage.Navigation.PopAsync();
+    }
+}
+
+#endregion
+
+
 namespace p
 {
 

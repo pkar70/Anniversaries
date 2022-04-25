@@ -1,67 +1,87 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Anniversaries.Maui.MainPage"
-             BackgroundColor="{DynamicResource SecondaryColor}"  Appearing="Page_Loaded">
-
-
-            <Grid >
-        <!--moze byc jako atrybut w Grid, i to jest wygodne: RowDefinitions="Auto,Auto,Auto,Auto,*"-->
-        <!-- RowSpacing="25" Padding="{OnPlatform iOS='30,60,30,30', Default='30'}" -->
+             x:Class="Anniversaries.MainPage"
+             Appearing="Page_Loaded">
+    
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Name="uiGrid" SizeChanged="uiGrid_Resized">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <!--<RowDefinition Height="1*"/>-->
-            <RowDefinition Height="60" /> 
-            <!-- BottomAppBar, powinno byc Auto ale nie dziala -->
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <Label Grid.Row="0" x:Uid="mpHeader" HorizontalTextAlignment="Center" Text="Anniversaries - today in history" FontSize="24" Margin="0,5,0,15"/>
-
-        <Grid x:Name="naView" Grid.Row="1" >
-            <!--<WebView Name="wbViewer" Margin="5,10,5,10" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" NavigationStarting="wbViewer_NavigationStarting" />-->
-            <WebView x:Name="wbViewer" Margin="5,10,5,10" HorizontalOptions="Fill" VerticalOptions="Fill" Navigating="wbViewer_NavigationStarting" />
-            <!--<ProgressBar HorizontalAlignment="Stretch" Visibility="Collapsed" VerticalAlignment="Bottom" Name="uiProgBar"/>-->
-            <ProgressBar HorizontalOptions="Fill" IsVisible="false" VerticalOptions="End" x:Name="uiProgBar"/>
+        <TextBlock x:Uid="mpHeader" HorizontalAlignment="Center" Margin="0,10,0,15" Text="Anniversaries - today in history" VerticalAlignment="Center" FontSize="24"/>
+        <Grid Name="naView" Grid.Row="1" >
+            <WebView Name="wbViewer" Margin="5,10,5,10" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" NavigationStarting="wbViewer_NavigationStarting" />
+            <!-- <ProgressBar HorizontalAlignment="Stretch" Visibility="Collapsed" VerticalAlignment="Bottom" Name="uiProgBar"/> -->
         </Grid>
 
-        <Grid Grid.Row="2" x:Name="uiAndroBottom" Margin="0,10,0,0">
+        <Grid Grid.Row="2" Name="uiAndroBottom" Margin="0,10,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="120" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-            <Label Text=" " x:Name="tbDzien" Margin="10,0,0,0" VerticalTextAlignment="Center" />
+            <TextBlock Text=" " Name="tbDzien" Margin="10,0,0,0" VerticalAlignment="Center" />
+            <StackPanel Orientation="Horizontal" Grid.Column="1">
 
-                <StackLayout Orientation="Horizontal" Grid.Column="1">
-                <Button x:Uid="bRefresh" x:Name="bRefresh"  Text="Wczytaj" Clicked="bRead_Click" VerticalOptions="Center" >
-                    <Button.ImageSource>
-                        <FontImageSource Glyph="&#xE14A;" FontFamily="Segoe MDL2 Assets" />
-                    </Button.ImageSource>
-                </Button>
-                <!--Icon="Refresh"-->
-                <Button x:Name="bEvent" x:Uid="bEvent" Text="Wydarzenia" Clicked="bEvent_Click" VerticalOptions="Center" >
-                    <Button.ImageSource>
-                        <FontImageSource Glyph="&#xE12B;" FontFamily="Segoe MDL2 Assets" />
-                    </Button.ImageSource>
-                </Button>
-
-                <!--Icon="Globe"-->
-                <Button x:Uid="bBirth" x:Name="bBirth" Text="Urodziny" Clicked="bBirth_Click" VerticalOptions="Center" >
-                    <Button.ImageSource>
-                        <FontImageSource Glyph="&#xE1E2;" FontFamily="Segoe MDL2 Assets" />
-                    </Button.ImageSource>
-                </Button>
-
-                <Button x:Uid="bDeath" x:Name="bDeath" Text="Smierci" Clicked="bDeath_Click" VerticalOptions="Center"  >
-                    <Button.ImageSource>
-                        <FontImageSource Glyph="&#xE1E0;" FontFamily="Segoe MDL2 Assets" />
-                    </Button.ImageSource>
-                </Button>
-
-
-            </StackLayout>
+                <AppBarSeparator Name="uiBarSeparat1"/>
+                <AppBarButton x:Uid="bRefresh" Name="bRefresh"  Icon="Refresh" Label="Wczytaj" Click="bRead_Click">
+                    <!--<AppBarButton.Icon>
+                        <FontIcon Glyph="&#xE14A;" FontFamily="ms-appx:///Assets/Fonts/winjs-symbols.ttf#Symbols" />
+                    </AppBarButton.Icon>-->
+                </AppBarButton>
+                <AppBarButton x:Uid="resDay" Label="Kalendarz" Icon="Calendar" Name="uiKalend">
+                    <AppBarButton.Flyout>
+                        <Flyout >
+                            <!--<DatePicker Name="uiDay" DateChanged="uiDayAndro_Changed" />-->
+                            <CalendarDatePicker Name="uiDay" DateChanged="uiDay_Changed"/>
+                        </Flyout>
+                    </AppBarButton.Flyout>
+                </AppBarButton>
+                <AppBarSeparator Name="uiBarSeparat2"/>
+                <AppBarButton Icon="Page" Label="Strona" x:Uid="uiSelektorStrony" Name="uiSelektorStrony">
+                    <AppBarButton.Flyout>
+                        <MenuFlyout>
+                            <ToggleMenuFlyoutItem Name="uiSelEvent" Text="Wydarzenia" x:Uid="bEventT"  Click="bEvent_Click" />
+                            <ToggleMenuFlyoutItem Name="uiSelBirth" Text="Urodziny" x:Uid="bBirthT" Click="bBirth_Click"/>
+                            <ToggleMenuFlyoutItem Name="uiSelDeath" Text="Zgony" x:Uid="bDeathT" Click="bDeath_Click"/>
+                        </MenuFlyout>
+                    </AppBarButton.Flyout>
+                </AppBarButton>
+                <AppBarToggleButton Name="bEvent" x:Uid="bEvent" Icon="Globe" Label="Wydarzenia" Click="bEvent_Click" />
+                <!-- <AppBarToggleButton x:Uid="bHolid" x:Name="bHolid" Icon="OutlineStar" Label="Swieta" Click="bHolid_Click"/> -->
+                <AppBarToggleButton x:Uid="bBirth" Name="bBirth" Label="Urodziny" Click="bBirth_Click">
+                    <AppBarToggleButton.Icon>
+                        <!--<FontIcon Glyph="&#xE1E2;" FontFamily="ms-appx:///Assets/Fonts/winjs-symbols.ttf#Symbols" /> -->
+                        <FontIcon Glyph="*"  />
+                    </AppBarToggleButton.Icon>
+                </AppBarToggleButton>
+                <AppBarToggleButton x:Uid="bDeath" Name="bDeath" Label="Smierci" Click="bDeath_Click">
+                    <AppBarToggleButton.Icon>
+                        <!--<FontIcon Glyph="&#xE1E0;" FontFamily="ms-appx:///Assets/Fonts/winjs-symbols.ttf#Symbols" /> -->
+                        <FontIcon Glyph="†"  />
+                    </AppBarToggleButton.Icon>
+                </AppBarToggleButton>
+                <AppBarSeparator Name="uiBarSeparat3"/>
+                <AppBarButton x:Uid="bSettings" Name="uiGoSett" Label="Settings" Icon="Setting" Click="bSetup_Click" />
+                <AppBarButton x:Uid="bHelp" Name="uiGoInfo" Label="Info" Icon="Help" Click="bInfo_Click" />
+                <AppBarButton Label="..." x:Name="uiAndroSec">
+                    <AppBarButton.Flyout>
+                        <MenuFlyout>
+                            <MenuFlyoutItem x:Uid="resDayM" Text="Kalendarz" Name="uiKalendSec">
+                                <Flyout >
+                                    <CalendarDatePicker Name="uiDaySec" DateChanged="uiDay_Changed"/>
+                                </Flyout>
+                            </MenuFlyoutItem>
+                            <MenuFlyoutItem x:Uid="bSettingsM" Name="uiGoSettSec" Text="Settings" Click="bSetup_Click" />
+                            <MenuFlyoutItem x:Uid="bHelpM" Name="uiGoInfoSec" Text="Info" Click="bInfo_Click" />
+                        </MenuFlyout>
+                    </AppBarButton.Flyout>
+                </AppBarButton>
+            </StackPanel>
         </Grid>
 
     </Grid>
-
 
 </ContentPage>

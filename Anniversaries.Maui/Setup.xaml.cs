@@ -2,11 +2,27 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Windows.UI.Xaml;
-using Windows.UI.Xaml.Controls;
+//using Windows.UI.Xaml;
+//using Windows.UI.Xaml.Controls;
 using static VBlib.Extensions;
 using vb14 = VBlib.pkarlibmodule14;
 
+
+using Microsoft.Maui;
+using Microsoft.Maui.Controls;
+
+#region "UWP-MAUI conversions"
+using RoutedEventArgs = System.EventArgs;
+using WebViewNavigationStartingEventArgs = Microsoft.Maui.Controls.WebNavigatingEventArgs;
+using Page = Microsoft.Maui.Controls.ContentPage;
+using StackPanel = Microsoft.Maui.Controls.StackLayout;
+
+static partial class Extensions
+{
+
+}
+
+#endregion
 
 namespace Anniversaries
 {
@@ -82,7 +98,7 @@ namespace Anniversaries
         {
             string sTmp = GetActiveTabs(uiTabOnOff);
 
-            if(sTmp == "")
+            if (sTmp == "")
             {
                 vb14.DialogBoxRes("noTabSelected");
                 return;
@@ -121,7 +137,7 @@ namespace Anniversaries
                 ts.IsOn = true;
             }
             else
-            { 
+            {
                 ts.Name = "uiSetLang" + sLang;
                 ts.Margin = new Thickness(10, 5, 0, 0);
             }

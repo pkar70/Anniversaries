@@ -1,9 +1,9 @@
-﻿using Microsoft.Maui;
+﻿
 using Microsoft.Maui.Controls;
-using Microsoft.Maui.Controls.PlatformConfiguration.WindowsSpecific;
-using Application = Microsoft.Maui.Controls.Application;
+//using Microsoft.Maui.Controls.PlatformConfiguration.WindowsSpecific;
+//using Application = Microsoft.Maui.Controls.Application;
 
-namespace Anniversaries.Maui
+namespace Anniversaries
 {
     public partial class App : Application
     {

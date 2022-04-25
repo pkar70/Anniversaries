@@ -91,7 +91,7 @@ Public Module MainPage
 
                     If oEntry.Name = "h2" Then
                         Dim oRetXml = New HtmlAgilityPack.HtmlDocument()
-                        oRetXml.LoadHtml("<root>" & sRet & "</root>")
+                        oRetXml.LoadHtml($"<root>{sRet}</root>")   ' oRetXml.LoadHtml("<root>" & sRet & "</root>")
                         'oRetXml.LoadXml(sRet);
                         Return oRetXml
                     End If
@@ -137,7 +137,7 @@ Public Module MainPage
     ''' jest to robione dla języka sLang (jakby były jakieś różnice)
     ''' </summary></summary>
     Private Function WyciagnijDane(htmlDoc As HtmlAgilityPack.HtmlDocument, sFrom As String, sLang As String) As HtmlAgilityPack.HtmlDocument
-        DumpCurrMethod("WyciagnijDane(htmlDoc, '" & sFrom & "', '" & sLang)
+        DumpCurrMethod($"WyciagnijDane(htmlDoc, '{sFrom}', '{sLang}'")
         Dim oH2 = WyciagnijSekcjeH2(htmlDoc, sFrom, sLang)
         If oH2 Is Nothing Then Return Nothing
 
@@ -329,7 +329,7 @@ Public Module MainPage
         oNodes1 = oNodes1.ElementAt(0).SelectNodes("li")   ' a w <root><ul> interesują nas <li>
         oNodes2 = oNodes2.ElementAt(0).SelectNodes("li")
 
-        DumpMessage("MergeSorted, count1= " & oNodes1.Count & ", count2=" & oNodes2.Count)
+        DumpMessage($"MergeSorted, count1={oNodes1.Count}, count2={oNodes2.Count}")
 
         ' gdy jest wczesniej błąd, to faktycznie moze byc count=0
         'if ((oNodes1.Count == 0) || (oNodes2.Count == 0))
@@ -378,7 +378,7 @@ Public Module MainPage
 
         Dim oRetDoc = New HtmlAgilityPack.HtmlDocument()
         If String.IsNullOrEmpty(sResult) Then Return oRetDoc
-        oRetDoc.LoadHtml("<root><ul>" & sResult & "</ul></root>")
+        oRetDoc.LoadHtml($"<root><ul>{sResult}</ul></root>")
         Return oRetDoc
     End Function
 
@@ -387,7 +387,7 @@ Public Module MainPage
     ''' </summary>
     Private Function DodajPelnyLink(sPage As String, sLang As String) As String
         Dim sTmp = sPage
-        sTmp = sTmp.Replace("""/wiki/", """https://" & sLang & ".wikipedia.org/wiki/")
+        sTmp = sTmp.Replace("""/wiki/", $"""https://{sLang}.wikipedia.org/wiki/")
         Return sTmp
     End Function
 
