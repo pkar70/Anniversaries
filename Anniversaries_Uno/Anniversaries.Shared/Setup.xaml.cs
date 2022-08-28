@@ -4,9 +4,10 @@ using System.IO;
 using System.Linq;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+
 using static VBlib.Extensions;
 using vb14 = VBlib.pkarlibmodule14;
-
+using static p.Extensions;
 
 namespace Anniversaries
 {
@@ -44,34 +45,32 @@ namespace Anniversaries
                 if (oItem is ToggleSwitch && oItem.Name.StartsWith("uiSetLang"))
                 {
                     if ((oItem as ToggleSwitch).IsOn)
-#pragma warning disable CA1308 // Normalize strings to uppercase
-                        sTmp = sTmp + oItem.Name.Replace("uiSetLang", "").ToLowerInvariant() + " ";
-#pragma warning restore CA1308 // Normalize strings to uppercase
+                        sTmp = sTmp + oItem.Name.Replace("uiSetLang", "").ToUpperInvariant() + " ";
                 }
             }
             return sTmp;
         }
 
-        private static void SetActiveTabs(StackPanel uiTabOnOff, string sEnabled)
+        private static void SetActiveTabs(StackPanel uiTabOnOff, string EnabledTabs)
         {
             foreach (FrameworkElement oItem in uiTabOnOff.Children)
             {
                 if (oItem is ToggleSwitch && oItem.Name.StartsWith("uiSetTab"))
                 {
                     if ((oItem as ToggleSwitch).IsOn)
-                        (oItem as ToggleSwitch).IsOn = sEnabled.Contains(oItem.Name.Replace("uiSetTab", "").ToUpperInvariant());
+                        (oItem as ToggleSwitch).IsOn = EnabledTabs.Contains(oItem.Name.Replace("uiSetTab", "").ToUpperInvariant());
                 }
             }
         }
 
-        private static void SetActiveLangs(StackPanel uiLangOnOff, string sEnabled)
+        private static void SetActiveLangs(StackPanel uiLangOnOff, string EnabledLanguages)
         {
-            sEnabled = sEnabled.ToUpperInvariant();
+            EnabledLanguages = EnabledLanguages.ToUpperInvariant();
             foreach (FrameworkElement oItem in uiLangOnOff.Children)
             {
                 if (oItem is ToggleSwitch && oItem.Name.StartsWith("uiSetLang"))
                 {
-                    (oItem as ToggleSwitch).IsOn = sEnabled.Contains(oItem.Name.Replace("uiSetLang", "").ToUpperInvariant() + " ");
+                    (oItem as ToggleSwitch).IsOn = EnabledLanguages.Contains(oItem.Name.Replace("uiSetLang", "").ToUpperInvariant() + " ");
                 }
             }
         }
@@ -90,7 +89,7 @@ namespace Anniversaries
 
             vb14.SetSettingsString("EnabledTabs", sTmp);
 
-            // odczytanie wszystkich uiSetLang, żeby nie trzeba było tu zmieniać kodu
+            // odczytanie wszystkich uiSetLang, żeby nie trzeba było tu zmieniać kodu - po ToUpper()
             sTmp = GetActiveLangs(uiLangOnOff);
 
             vb14.SetSettingsString("EnabledLanguages", sTmp);

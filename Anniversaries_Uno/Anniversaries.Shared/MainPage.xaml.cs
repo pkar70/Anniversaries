@@ -15,7 +15,7 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
 using vb14 = VBlib.pkarlibmodule14;
-
+using static p.Extensions;
 
 
 namespace Anniversaries
@@ -208,14 +208,11 @@ namespace Anniversaries
             return iIcons;
         }
 
-#if NETFX_CORE
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "bo to dla Android jest, w UWP jest warning")]
-#endif
         private void DopasowanieCmdBar_JestSecondary(bool bShowSecondaryCommands)
         {
             // guzik wejścia do Secondary menu
-#if !NETFX_CORE
             Visibility bVis = (bShowSecondaryCommands) ? Visibility.Visible : Visibility.Collapsed;
+#if !NETFX_CORE
             uiAndroSec.Visibility = bVis;
 #endif
         }
@@ -372,9 +369,8 @@ namespace Anniversaries
 
             if (!vb14.GetSettingsBool("LinksActive"))
                 return;
-#pragma warning disable CS4014
-            Windows.System.Launcher.LaunchUriAsync(args.Uri);
-#pragma warning restore
+
+            args.Uri.OpenBrowser();
         }
 #pragma warning restore IDE0079 // Remove unnecessary suppression
 

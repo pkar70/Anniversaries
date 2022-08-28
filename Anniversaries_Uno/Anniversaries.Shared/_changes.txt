@@ -4,10 +4,17 @@
 * AppBar: zepsute ikonki [workaround], niepotrzebny button rozwijania ze złą ikonką (a i tak nie działa)
 * CommandBar: pokazuje tylko SecondaryCommands (brak obsługi innych niż BitmapIcon)
 
+2022.08.20
+* zmieniam ToLower na ToUpper (na EnabledLangs), bo tak chce w warningach; uri.OpenBrowser zamiast wprost Windows (pod MAUI)
+
+2022.05.25
+* dodanie do VBlib deflang, bez czego nie było w Release GetLang w ogóle!
+
 2022.04.25
 * _changes, _tudus
 * trochę strings z dodawania na ${}
 * usunąłem z setup.xaml listę ToggleSwitch językowych (w kodzie i tak są Clear, i wstawiane w pętli)
+* poprawa zmiennych - teraz już wczytuje z INI
 
 2022.04.15
 * MainPage, ProgressBar z XAML na ProgRing
