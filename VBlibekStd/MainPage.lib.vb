@@ -101,6 +101,8 @@ Public Module MainPage
                     ' pomijam puste
                     If oEntry.OuterHtml.Trim() = "" Then bSkip = True
 
+                    If sLang = "ru" AndAlso oEntry.InnerHtml.StartsWith("<i>См. также:") Then bSkip = True
+
                     ' dla Ukrainy takie coś - mają pierwsze <p>, *TODO* tylko pierwsze <p> pomijać
                     If sLang = "uk" AndAlso oEntry.Name = "p" Then bSkip = True
                     If oEntry.Name = "h4" Then bSkip = True ' dla DE
@@ -148,7 +150,6 @@ Public Module MainPage
         ' usuwamy link do multimedia
         ' dla: PL
         UsunElementy(oH2, "table", "infobox")
-
 
         ' nic nie robi dla:
         ' PL: (ale za to MergeSorted h2 świat i PL)
@@ -534,7 +535,7 @@ Public Module MainPage
 
         For Each sLang In aArr
             Dim sLang1 = "https://" & sLang & ".wikipedia"
-            iInd = sPage.IndexOf(sLang1, StringComparison.Ordinal)
+            iInd = sPage.IndexOf(sLang1, StringComparison.OrdinalIgnoreCase)
 
             If iInd > 100 Then
                 sTmp = sPage.Substring(iInd)

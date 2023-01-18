@@ -7,6 +7,7 @@ using Windows.UI.Xaml.Controls;
 
 using static VBlib.Extensions;
 using vb14 = VBlib.pkarlibmodule14;
+using static pkar.DotNetExtensions;
 using static p.Extensions;
 
 namespace Anniversaries

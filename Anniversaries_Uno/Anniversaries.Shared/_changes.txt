@@ -4,6 +4,12 @@
 * AppBar: zepsute ikonki [workaround], niepotrzebny button rozwijania ze złą ikonką (a i tak nie działa)
 * CommandBar: pokazuje tylko SecondaryCommands (brak obsługi innych niż BitmapIcon)
 
+STORE (Win)
+
+2023.01.17
+* wykorzystanie własnych Nuget
+* poprawienie RU
+
 2022.08.20
 * zmieniam ToLower na ToUpper (na EnabledLangs), bo tak chce w warningach; uri.OpenBrowser zamiast wprost Windows (pod MAUI)
 

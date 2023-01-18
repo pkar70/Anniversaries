@@ -1,5 +1,5 @@
 ﻿using System;
-
+using static p.Extensions;
 
 namespace Anniversaries
 {
