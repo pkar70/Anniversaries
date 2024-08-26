@@ -21,6 +21,12 @@
 			-->
       <Version>6.2.14</Version>
     </PackageReference>
+    <PackageReference Include="pkar.UWP.Config">
+      <Version>2.0.1</Version>
+    </PackageReference>
+    <PackageReference Include="pkar.Uwp.Extensions">
+      <Version>2.0.11</Version>
+    </PackageReference>
     <PackageReference Include="System.Net.Http">
       <Version>4.3.4</Version>
     </PackageReference>

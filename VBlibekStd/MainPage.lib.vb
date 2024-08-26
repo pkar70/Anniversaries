@@ -7,9 +7,9 @@
 
 Public Module MainPage
 
-    Private mEvents As New HtmlAgilityPack.HtmlDocument()
-    Private mBirths As New HtmlAgilityPack.HtmlDocument()
-    Private mDeaths As New HtmlAgilityPack.HtmlDocument()
+    Private mEvents As New List(Of OneRocznica)
+    Private mBirths As New List(Of OneRocznica)
+    Private mDeaths As New List(Of OneRocznica)
 
     ' nazwa, odpowiednio Case dla Wikipedii - gdy poza zakresem, zwroci styczen
     Public Function MonthNo2EnName(ByVal iMonth As Integer) As String ' static, bo wywoływane z  InfoAbout
@@ -46,75 +46,60 @@ Public Module MainPage
 
     Public Sub bRead_Click_Reset()
         ' fragment bRead_Click, żeby nie trzeba było Agility dodawać do samej App - wystarczy w VBlib
-        mEvents = New HtmlAgilityPack.HtmlDocument()
-        mBirths = New HtmlAgilityPack.HtmlDocument()
-        mDeaths = New HtmlAgilityPack.HtmlDocument()
+        mEvents = New List(Of OneRocznica)
+        mBirths = New List(Of OneRocznica)
+        mDeaths = New List(Of OneRocznica)
     End Sub
 
     Public Function GetContentForWebview(sTab As String) As String
-        Dim oDoc As HtmlAgilityPack.HtmlNode
         Select Case sTab
             Case "E"
-                oDoc = mEvents.DocumentNode
+                Return Dict2Web(mEvents)
             Case "B"
-                oDoc = mBirths.DocumentNode
+                Return Dict2Web(mBirths)
             Case "D"
-                oDoc = mDeaths.DocumentNode
+                Return Dict2Web(mDeaths)
             Case Else
                 DumpMessage("unrecognized sTab (" & sTab & ") in GetContentForWebview, using Events")
-                oDoc = mEvents.DocumentNode
+                Return Dict2Web(mEvents)
         End Select
-
-        If oDoc.FirstChild Is Nothing Then Return Nothing
-
-        Return oDoc.OuterHtml
 
     End Function
 
+    Private Function Dict2Web(dict As List(Of OneRocznica)) As String
+        If dict Is Nothing Then Return ""
+        Dim ret As String = ""
+        For Each oItem In dict.OrderBy(Of Integer)(Function(x) x.rok)
+            ret = ret & vbCrLf & "<li>" & oItem.html
+        Next
+
+        Return "<html><body><ul>" & ret & "</ul></body></html>"
+    End Function
+
+
     ''' <summary>
-    ''' Wycięcie z htmlDoc fragmentu od <h2> zawierającego _sFrom_ (np. "id=wydarzenia") do początku następnego h2
+    ''' Wycięcie z htmlDoc fragmentu od h2 zawierającego _sFrom_ (np. "id=wydarzenia") do początku następnego h2
     ''' </summary>
     Private Function WyciagnijSekcjeH2(htmlDoc As HtmlAgilityPack.HtmlDocument, sFrom As String, sLang As String) As HtmlAgilityPack.HtmlDocument
         DumpCurrMethod(sFrom)
-        ' wszystkie H2 proszę przeiterować
-        ' w każdym z nich, w inner html, sprawdzam istnienie sFrom
 
-        For Each oH2 As HtmlAgilityPack.HtmlNode In htmlDoc.DocumentNode.SelectNodes("//h2")
+        Dim oRetXml = New HtmlAgilityPack.HtmlDocument()
 
-            If oH2.InnerText.Contains(sFrom) Then
-                ' mam to! znaczy odpowiedni H2
-                ' sklejaj wszystkie outer aż do następnego H2
-                Dim sRet = ""
-                Dim oEntry As HtmlAgilityPack.HtmlNode = oH2.NextSibling
+        ' ze względu na zmianę struktury ( <h2> jest pod div, więc trzeba byłoby szukać DIVa w którym jest H2, i iterować siblingi DIVa..
+        Dim sPage As String = htmlDoc.DocumentNode.InnerHtml
+        Dim iInd As Integer = sPage.IndexOf("<h2 id=""" & sFrom)
+        If iInd < 10 Then Return oRetXml
 
-                While oEntry IsNot Nothing
+        sPage = sPage.Substring(iInd)
+        iInd = sPage.IndexOf("<h2", 10)
+        sPage = sPage.Substring(0, iInd)
 
-                    If oEntry.Name = "h2" Then
-                        Dim oRetXml = New HtmlAgilityPack.HtmlDocument()
-                        oRetXml.LoadHtml($"<root>{sRet}</root>")   ' oRetXml.LoadHtml("<root>" & sRet & "</root>")
-                        'oRetXml.LoadXml(sRet);
-                        Return oRetXml
-                    End If
+        oRetXml.LoadHtml(sPage)
+        Return oRetXml
 
-                    Dim bSkip = False
-
-                    ' pomijam puste
-                    If oEntry.OuterHtml.Trim() = "" Then bSkip = True
-
-                    If sLang = "ru" AndAlso oEntry.InnerHtml.StartsWith("<i>См. также:") Then bSkip = True
-
-                    ' dla Ukrainy takie coś - mają pierwsze <p>, *TODO* tylko pierwsze <p> pomijać
-                    If sLang = "uk" AndAlso oEntry.Name = "p" Then bSkip = True
-                    If oEntry.Name = "h4" Then bSkip = True ' dla DE
-                    If oEntry.Name = "dl" Then bSkip = True ' dla RU
-                    If Not bSkip Then sRet += oEntry.OuterHtml.Trim()
-                    oEntry = oEntry.NextSibling
-                End While
-            End If
-        Next
-
-        Return Nothing  ' nie było takiego
     End Function
+
+
 
     Private Sub UsunElementy(oDoc As HtmlAgilityPack.HtmlDocument, sTagName As String, Optional sTagAttr As String = "")
         For iGuard = 100 To 1 Step -1
@@ -134,18 +119,24 @@ Public Module MainPage
     End Sub
 
     ''' <summary>
-    ''' Wycięcie z htmlDoc fragmentu od <h2> zawierającego _sFrom_ (np. "id=wydarzenia") do początku następnego h2
+    ''' Wycięcie z htmlDoc fragmentu od h2 zawierającego _sFrom_ (np. "id=wydarzenia") do początku następnego h2
     ''' Ma usunąć wszystkie niepotrzebne rzeczy.
     ''' jest to robione dla języka sLang (jakby były jakieś różnice)
-    ''' </summary></summary>
-    Private Function WyciagnijDane(htmlDoc As HtmlAgilityPack.HtmlDocument, sFrom As String, sLang As String) As HtmlAgilityPack.HtmlDocument
+    ''' </summary>
+    Private Function WyciagnijDane(htmlDoc As HtmlAgilityPack.HtmlDocument, sFrom As String, sLang As String) As List(Of OneRocznica)
         DumpCurrMethod($"WyciagnijDane(htmlDoc, '{sFrom}', '{sLang}'")
         Dim oH2 = WyciagnijSekcjeH2(htmlDoc, sFrom, sLang)
         If oH2 Is Nothing Then Return Nothing
 
+        UsunElementy(oH2, "h2")
+        UsunElementy(oH2, "span", "mw-edit")
+
         ' usuwamy obrazki: <div class="thumb tright"> oraz tleft
         ' dla: DE, FR, ES
         UsunElementy(oH2, "div", "div class=""thumb")
+
+        ' dla UA
+        UsunElementy(oH2, "figure")
 
         ' usuwamy link do multimedia
         ' dla: PL
@@ -155,14 +146,13 @@ Public Module MainPage
         ' PL: (ale za to MergeSorted h2 świat i PL)
         ' dla EL: nic
         ' mogłoby być wcześniej, ale żaden problem spróbować usunąć
-        If sLang = "pl" OrElse sLang = "el" Then Return oH2
+        'If sLang = "pl" OrElse sLang = "el" Then Return oH2
 
         ' dla DE:
         '  w wydarzeniach, H3 do MergeSorted, w pozostałych - do usunięcia
-        If sLang = "de" Then
-            oH2 = SplitAndSort(oH2, "h3")
-        End If
-
+        'If sLang = "de" Then
+        '    oH2 = SplitAndSort(oH2, "h3")
+        'End If
 
         ' usuwamy podrozdziały (h3)
         ' dla: EN, RU, UK
@@ -182,13 +172,24 @@ Public Module MainPage
         Dim sXml As String = oH2.DocumentNode.OuterHtml
         sXml = sXml.Replace(vbLf, " ")
         sXml = sXml.Replace(vbCr, " ")
-        sXml = sXml.Replace("  ", " ")
-        sXml = sXml.Replace("  ", " ")
-        sXml = sXml.Replace("  ", " ")
-        sXml = sXml.Replace("</ul> <ul>", "")
-        sXml = sXml.Replace("</ul><ul>", "")
+        'sXml = sXml.Replace("  ", " ")
+        'sXml = sXml.Replace("  ", " ")
+        'sXml = sXml.Replace("  ", " ")
+        'sXml = sXml.Replace("</ul> <ul>", "")
+        'sXml = sXml.Replace("</ul><ul>", "")
+
         oH2.LoadHtml(sXml)
-        Return oH2
+
+        ' teraz bierzemy tylko LI
+        Dim retDict As New List(Of OneRocznica)
+        For Each oNode In oH2.DocumentNode.SelectNodes("//li")
+            Dim rok As Integer = Li2Rok(oNode.InnerText)
+            ' DE: li ma podpunkty, bez powtórzenia roku - bez tego zabezpieczenia by było jako rok 0
+            If rok > 2340 Then Continue For
+            retDict.Add(New OneRocznica(rok, oNode.InnerHtml))
+        Next
+
+        Return retDict
     End Function
 
     Private Function IndexOfOr99(ByVal sTxt As String, ByVal sSubstring As String) As Integer
@@ -201,7 +202,7 @@ Public Module MainPage
     ''' rok wedle Wikipedii -> rok do sortowania
     ''' </summary>
     Private Function Li2Rok(ByVal sTxt As String) As Integer
-        Dim iRok = 0
+        Dim iRok = 2345 ' nieudana konwersja
         Dim iInd As Integer
         sTxt = sTxt.Trim()    ' " 422 -" wydarzenia na swiecie pl.wikipedia
         iInd = sTxt.IndexOf(Microsoft.VisualBasic.ChrW(160)) ' rosyjskojezyczna ma ROK<160><kreska><spacja>
@@ -215,7 +216,10 @@ Public Module MainPage
         iInd = Math.Min(iInd, IndexOfOr99(sTxt, "年"))  ' chinski
 
         If iInd > 0 And iInd < 6 Then
-            If Not Integer.TryParse(sTxt.Substring(0, iInd), iRok) Then Debug.Write("Error CInt(" & sTxt.Substring(0, iInd) & ")")
+            If Not Integer.TryParse(sTxt.Substring(0, iInd), iRok) Then
+                Debug.Write("Error CInt(" & sTxt.Substring(0, iInd) & ")")
+                Return 2345
+            End If
             sTxt = sTxt.Substring(iInd)
             If sTxt.Length > 10 Then sTxt = sTxt.Substring(0, 10)  ' 20180115, bo jakis XBOX mial w tej funkcji out-of-range
             If sTxt.IndexOf(" BC", StringComparison.Ordinal) = 0 Then iRok = -iRok    ' en
@@ -294,43 +298,43 @@ Public Module MainPage
         Dim oRoot2 As HtmlAgilityPack.HtmlNode = oDom2.DocumentNode
         If oRoot2 Is Nothing Then Return oDom1
 
-        Dim oNodes1 As HtmlAgilityPack.HtmlNodeCollection = oRoot1.ChildNodes ' wewnątrz #document powinien być tylko <root>
-        Dim oNodes2 As HtmlAgilityPack.HtmlNodeCollection = oRoot2.ChildNodes
+        Dim oNodes1 As HtmlAgilityPack.HtmlNodeCollection = oRoot1.SelectNodes("//li") ' wewnątrz #document powinien być tylko <root>
+        Dim oNodes2 As HtmlAgilityPack.HtmlNodeCollection = oRoot2.SelectNodes("//li")
 
-        If oNodes1.Count < 1 Then Return oDom2
-        If oNodes2.Count < 1 Then Return oDom1
-        If oNodes1.Count > 1 Or oNodes2.Count > 1 Then
-            ' coś jest nie tak, powinno być tylko jedno
-            DumpMessage("Something is wrong - should be only one item inside #document!")
-            Return oDom1
-        End If
+        'If oNodes1.Count < 1 Then Return oDom2
+        'If oNodes2.Count < 1 Then Return oDom1
+        'If oNodes1.Count > 1 Or oNodes2.Count > 1 Then
+        '    ' coś jest nie tak, powinno być tylko jedno
+        '    DumpMessage("Something is wrong - should be only one item inside #document!")
+        '    Return oDom1
+        'End If
 
-        oNodes1 = oNodes1.ElementAt(0).ChildNodes ' czyli <root> 
-        oNodes2 = oNodes2.ElementAt(0).ChildNodes
+        'oNodes1 = oNodes1.ElementAt(0).ChildNodes ' czyli <root> 
+        'oNodes2 = oNodes2.ElementAt(0).ChildNodes
 
-        If oNodes1.Count < 1 Then Return oDom2
-        If oNodes2.Count < 1 Then Return oDom1
-        If oNodes1.Count > 1 Or oNodes2.Count > 1 Then
-            ' coś jest nie tak, powinno być tylko jedno 
-            DumpMessage("Something is wrong - should be only one item inside <root>!")
+        'If oNodes1.Count < 1 Then Return oDom2
+        'If oNodes2.Count < 1 Then Return oDom1
+        'If oNodes1.Count > 1 Or oNodes2.Count > 1 Then
+        '    ' coś jest nie tak, powinno być tylko jedno 
+        '    DumpMessage("Something is wrong - should be only one item inside <root>!")
 
-            DumpMessage("oNodes1:")
-            For Each oItem In oNodes1
-                DumpMessage(oItem.Name)
-            Next
+        '    DumpMessage("oNodes1:")
+        '    For Each oItem In oNodes1
+        '        DumpMessage(oItem.Name)
+        '    Next
 
-            DumpMessage("oNodes2:")
-            For Each oItem In oNodes2
-                DumpMessage(oItem.Name)
-            Next
+        '    DumpMessage("oNodes2:")
+        '    For Each oItem In oNodes2
+        '        DumpMessage(oItem.Name)
+        '    Next
 
-            Return oDom1
-        End If
+        '    Return oDom1
+        'End If
 
-        oNodes1 = oNodes1.ElementAt(0).SelectNodes("li")   ' a w <root><ul> interesują nas <li>
-        oNodes2 = oNodes2.ElementAt(0).SelectNodes("li")
+        'oNodes1 = oNodes1.ElementAt(0).SelectNodes("//li")   ' a w <root><ul> interesują nas <li>
+        'oNodes2 = oNodes2.ElementAt(0).SelectNodes("//li")
 
-        DumpMessage($"MergeSorted, count1={oNodes1.Count}, count2={oNodes2.Count}")
+        'DumpMessage($"MergeSorted, count1={oNodes1.Count}, count2={oNodes2.Count}")
 
         ' gdy jest wczesniej błąd, to faktycznie moze byc count=0
         'if ((oNodes1.Count == 0) || (oNodes2.Count == 0))
@@ -416,115 +420,66 @@ Public Module MainPage
 
         Select Case sLang
             Case "en"
-                If sTabs.Contains("E") Then mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "Events", sLang))
-                If sTabs.Contains("B") Then mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "Births", sLang))
-                If sTabs.Contains("D") Then mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "Deaths", sLang))
-                    'if (sTabs.IndexOf("H", StringComparison.Ordinal) > -1)
-                    '    mHolid = mHolid + WyciagnijDane(sTxt, "observances\">Holidays", sUrl);
-
+                DodajEventy(sTabs, htmlDoc, sLang, "Events", "Births", "Deaths")
             Case "de"
-                If sTabs.Contains("E") Then mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "Ereignisse", sLang))
-                If sTabs.Contains("B") Then mBirths = WyciagnijDane(htmlDoc, "Geboren", sLang)
-                If sTabs.Contains("D") Then mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "Gestorben", sLang))
-                    'if (sTabs.IndexOf("H", StringComparison.Ordinal) > -1)
-                    '    mHolid = mHolid + WyciagnijDane(sTxt, "id=\"Feier");
-
+                DodajEventy(sTabs, htmlDoc, sLang, "Ereignisse", "Geboren", "Gestorben")
             Case "pl"
                 If sTabs.Contains("E") Then
-                    mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "Wydarzenia w Pols", sLang))
-                    mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "Wydarzenia na świ", sLang))
+                    mEvents = mEvents.Concat(WyciagnijDane(htmlDoc, "Wydarzenia_w_Pols", sLang)).ToList
+                    mEvents = mEvents.Concat(WyciagnijDane(htmlDoc, "Wydarzenia_na_świ", sLang)).ToList
                 End If
-
-                If sTabs.Contains("B") Then mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "Urodzili", sLang))
-                If sTabs.Contains("D") Then mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "Zmarli", sLang))
-                    'if (sTabs.IndexOf("H", StringComparison.Ordinal) > -1)
-                    '    mHolid = mHolid + WyciagnijDane(sTxt, "id=\"Święta");
-
+                DodajEventy(sTabs, htmlDoc, sLang, "", "Urodzili", "Zmarli")
             Case "fr"
                 If sTabs.Contains("E") Then
-                    mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "Événements", sLang))
-                    mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "Arts, culture", sLang))
-                    mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "Sciences_et", sLang))
-                    mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "Économie", sLang))
+                    mEvents = mEvents.Concat(WyciagnijDane(htmlDoc, "Événements", sLang)).ToList
+                    mEvents = mEvents.Concat(WyciagnijDane(htmlDoc, "Arts,_culture", sLang)).ToList
+                    mEvents = mEvents.Concat(WyciagnijDane(htmlDoc, "Sciences_et", sLang)).ToList
+                    mEvents = mEvents.Concat(WyciagnijDane(htmlDoc, "Économie", sLang)).ToList
                 End If
-
-                If sTabs.Contains("B") Then mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "Naissances", sLang))
-                If sTabs.Contains("D") Then mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "Décès", sLang))
-                    'if (sTabs.IndexOf("H", StringComparison.Ordinal) > -1)
-                    '    mHolid = mHolid + WyciagnijDane(sTxt, "ns\">Célébrations");
-
+                DodajEventy(sTabs, htmlDoc, sLang, "", "Naissances", "Décès")
             Case "es"
-                If sTabs.Contains("E") Then mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "Acontecimientos", sLang))
-                If sTabs.Contains("B") Then mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "Nacimientos", sLang))
-                If sTabs.Contains("D") Then mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "Fallecimientos", sLang))
-                    'if (sTabs.IndexOf("H", StringComparison.Ordinal) > -1)
-                    '    mHolid = mHolid + WyciagnijDane(sTxt, "s\">Celebraciones");
-
+                DodajEventy(sTabs, htmlDoc, sLang, "Acontecimientos", "Nacimientos", "Fallecimientos")
             Case "ru"
-                If sTabs.Contains("E") Then mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "События", sLang))
-                If sTabs.Contains("B") Then mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "Родились", sLang))
-                If sTabs.Contains("D") Then mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "Скончались", sLang))
-                    'if (sTabs.IndexOf("H", StringComparison.Ordinal) > -1)
-                    '    mHolid = mHolid + WyciagnijDane(sTxt, "id=\"Праздники");
-
+                DodajEventy(sTabs, htmlDoc, sLang, "События", "Родились", "Скончались")
             Case "uk"
-                If sTabs.Contains("E") Then mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "Події", sLang))
-                If sTabs.Contains("B") Then mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "Народились", sLang))
-                If sTabs.Contains("D") Then mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "Померли", sLang))
-
+                DodajEventy(sTabs, htmlDoc, sLang, "Події", "Народились", "Померли")
             Case "el"
-                If sTabs.Contains("E") Then mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "Γεγονότα", sLang))
-                If sTabs.Contains("B") Then mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "Γεννήσεις", sLang))
-                If sTabs.Contains("D") Then mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "Θάνατοι", sLang))
-
+                DodajEventy(sTabs, htmlDoc, sLang, "Γεγονότα", "Γεννήσεις", "Θάνατοι")
             Case "he"
-                If sTabs.Contains("E") Then mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "אירועים", sLang))
-                If sTabs.Contains("B") Then mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "נולדו", sLang))
-                If sTabs.Contains("D") Then mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "נפטרו", sLang))
-
+                DodajEventy(sTabs, htmlDoc, sLang, "אירועים", "נולדו", "נפטרו")
             Case "ja"
-                If sTabs.Contains("E") Then mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "できごと", sLang))
-                If sTabs.Contains("B") Then mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "誕生日", sLang))
-                If sTabs.Contains("D") Then mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "忌日", sLang))
-
+                DodajEventy(sTabs, htmlDoc, sLang, "できごと", "誕生日", "忌日")
             Case "ar"
-                If sTabs.Contains("E") Then mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "أحداث", sLang))
-                If sTabs.Contains("B") Then mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "مواليد", sLang))
-                If sTabs.Contains("D") Then mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "وفيات", sLang))
-
+                DodajEventy(sTabs, htmlDoc, sLang, "أحداث", "مواليد", "وفيات")
             Case "ka"
-                If sTabs.Contains("E") Then mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "მოვლენები", sLang))
-                If sTabs.Contains("B") Then mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "დაბადებულნი", sLang))
-                If sTabs.Contains("D") Then mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "გარდაცვლილნი", sLang))
-
+                DodajEventy(sTabs, htmlDoc, sLang, "დღის_მოვლენები", "ამ_დღეს_დაბადებულნი", "ამ_დღეს_გარდაცვლილნი")
             Case "ko"
+                DodajEventy(sTabs, htmlDoc, sLang, "", "탄생", "사망")
 
                 If sTabs.Contains("E") Then
-                    mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "사건", sLang))
-                    mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "문화", sLang))
+                    mEvents = mEvents.Concat(WyciagnijDane(htmlDoc, "사건", sLang)).ToList
+                    mEvents = mEvents.Concat(WyciagnijDane(htmlDoc, "문화", sLang)).ToList
                 End If
-
-                If sTabs.Contains("B") Then mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "탄생", sLang))
-                If sTabs.Contains("D") Then mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "사망", sLang))
-
             Case "zh"
-                If sTabs.Contains("E") Then mEvents = MergeSorted(mEvents, WyciagnijDane(htmlDoc, "大事记", sLang))
-                If sTabs.Contains("B") Then mBirths = MergeSorted(mBirths, WyciagnijDane(htmlDoc, "出生", sLang))
-                If sTabs.Contains("D") Then mDeaths = MergeSorted(mDeaths, WyciagnijDane(htmlDoc, "逝世", sLang))
-
+                DodajEventy(sTabs, htmlDoc, sLang, "大事记", "出生", "逝世")
             Case Else
-                Dim oUnsupported = HtmlAgilityPack.HtmlNode.CreateNode("<h2>Unsupported lang: " & sLang & "</h2>")
-                mEvents.DocumentNode.AppendChild(oUnsupported)
-                mBirths.DocumentNode.AppendChild(oUnsupported)
-                mDeaths.DocumentNode.AppendChild(oUnsupported)
-
+                Dim oUnsupported As New OneRocznica(10, $"<h2>Unsupported lang: {sLang}</h2>")
+                mEvents.Add(oUnsupported)
+                mBirths.Add(oUnsupported)
+                mDeaths.Add(oUnsupported)
         End Select
 
         Return sTxt
     End Function
 
+    Private Sub DodajEventy(sTabs As String, htmlDoc As HtmlAgilityPack.HtmlDocument, sLang As String, eventsHdr As String, birthsHdr As String, deathsHdr As String)
+        If sTabs.Contains("E") AndAlso eventsHdr <> "" Then mEvents = mEvents.Concat(WyciagnijDane(htmlDoc, eventsHdr, sLang)).ToList
+        If sTabs.Contains("B") AndAlso birthsHdr <> "" Then mBirths = mBirths.Concat(WyciagnijDane(htmlDoc, birthsHdr, sLang)).ToList
+        If sTabs.Contains("D") AndAlso deathsHdr <> "" Then mDeaths = mDeaths.Concat(WyciagnijDane(htmlDoc, deathsHdr, sLang)).ToList
+    End Sub
+
     Public Function ExtractLangLinks(sForLangs As String, sPage As String) As IReadOnlyList(Of String)
-        Dim lList As New List(Of String)()     ' SDK 1803 - problem z typem?
+        Dim lList As New List(Of String)
         If sForLangs Is Nothing Then Return lList
         If String.IsNullOrEmpty(sPage) Then Return lList
 
@@ -548,7 +503,20 @@ Public Module MainPage
         Return lList
     End Function
 
+
+    Public Class OneRocznica
+        Public Property rok As Integer
+        Public Property html As String
+
+        Public Sub New(_rok As Integer, _html As String)
+            rok = _rok
+            html = _html
+        End Sub
+    End Class
+
 End Module
 
 #Enable Warning CA2007 'Consider calling ConfigureAwait On the awaited task
 #Enable Warning CA1707 ' Identifiers should not contain underscores
+
+

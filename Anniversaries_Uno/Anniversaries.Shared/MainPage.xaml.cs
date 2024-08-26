@@ -14,6 +14,7 @@ using Windows.Foundation.Collections;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
+using pkar.UI.Extensions;
 using vb14 = VBlib.pkarlibmodule14;
 using static p.Extensions;
 
@@ -27,6 +28,7 @@ namespace Anniversaries
         {
             this.InitializeComponent();
             this.ProgRingInit(false,true);
+            VBlib.pkarlibmodule14.LangEnsureInit(false);
         }
 
         private static DateTimeOffset mDate;
